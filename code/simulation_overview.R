@@ -20,7 +20,7 @@ model <- coal_model(sample_size = 10, loci_number = 50,
   sumstat_nucleotide_div()
 check_model(model)
 model # see model
-stats <- simulate(model, seed = 15, nsim=1000)
+stats <- simulate(model, seed = 15, nsim=100)
 
 # plot
 mean_pi <- map_dbl(stats, ~mean(.x$pi))
@@ -28,11 +28,11 @@ theta <- map_dbl(stats, "pars", .default="theta")
 plot(theta, mean_pi, pch = 19, col = "orange")
 abline(lm(mean_pi ~ theta), col = "red2", lty = 3)
 
-
 # 20 samples from one pop, 
 model <- coal_model(sample_size = 10, loci_number = 100, 
                     loci_length = 300, ploidy = 2) +
   feat_mutation(.1, model="IFS") +
+  coala::
   sumstat_tajimas_d()
 check_model(model)
 model
