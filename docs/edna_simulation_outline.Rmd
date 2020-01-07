@@ -1,0 +1,48 @@
+---
+title: "eDNA Simulation Outline"
+author: "Ryan Peek"
+date: "Updated: `r format(Sys.Date())`"
+output: 
+  html_document:
+    highlight: pygments
+    theme: yeti
+    toc: yes
+    toc_float: yes
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(warning = FALSE)
+
+suppressPackageStartupMessages({
+  library(tidyverse);
+  library(sf);
+  library(leaflet);
+  library(here);
+  library(mapview)
+})
+
+```
+
+## Overview
+
+To assess how much eDNA is required to identify the number of individuals in a population, we need to first play around with the parameters that may affect this. There are environmental/physical factors which play a role in how much eDNA is available in a sample, such as individual shedding rates, local decay rates, and movement through water/environment. These are separate of the intent of these simulations. We want to know if conditions are ideal, how much DNA would it require to actually detect an individual or a small population? 
+
+To that end there are a few main components or parameters of interest:
+
+ 1. The number of individuals we want to detect (i.e, 1, 5, 100)
+ 2. $\theta$ which relates to length, and varies between organism/sequences (0.1, 1, 10)
+ 3. Number of Loci (10, 100, 1000, 10000)?
+ 
+For technical simulations, we'll want to tune with these parameters:
+ - Number of loci
+ - Length of loci
+ - Sequencing depth per loci (more seq, more allelic depth)
+ - Number of individuals present
+ 
+ > Assume even coverage across individuals, how many loci/length/coverage gives best chance of detecting **_X_** number of individuals?
+ 
+ Make a plot of # of Alleles (X axis) vs. # of Loci (Y axis).
+ 
