@@ -33,7 +33,7 @@ To assess how much eDNA is required to identify the number of individuals in a p
 To that end there are a few main components or parameters of interest:
 
  1. The number of individuals we want to detect (i.e, 1, 5, 100)
- 2. $\theta$ which relates to length, and varies between organism/sequences (0.1, 1, 10)
+ 2. $\theta$ (mutation rate) which relates to length, and varies between organism/sequences (0.1, 1, 10)
  3. Number of Loci (10, 100, 1000, 10000)?
  
 For technical simulations, we'll want to tune with these parameters:
@@ -45,4 +45,80 @@ For technical simulations, we'll want to tune with these parameters:
  > Assume even coverage across individuals, how many loci/length/coverage gives best chance of detecting **_X_** number of individuals?
  
  Make a plot of # of Alleles (X axis) vs. # of Loci (Y axis).
+ 
+ 
+### Using `coala`
+
+ - See [here](https://cran.r-project.org/web/packages/coala/vignettes/coala-intro.html)
+
+ 
+Here we try a simulation of:
+ - **sample_size** = 1 population, 5 individuals
+ - **loci** = 10
+ - **loci_length** = 100
+ - **mutation_rate**(theta) = 1
+
+```{r simulation1}
+
+library(purrr)
+library(tidyverse)
+library(coala)
+library(phyclust) # to use ms sim
+activate_ms(priority = 500)
+
+# list simulators
+list_simulators()
+
+# a sample size vector: defines the number of populations and the number of individuals sampled from each pop
+# so integer vector of indiv sampled from corresponding pop
+
+# 1 Population, 5 indiv
+model <- coal_model(sample_size = c(5), loci_number = 5, 
+                    loci_length = 100, ploidy = 2) +
+  feat_mutation(rate = 1, model = "IFS") + # rate= 4*N*mu (mutation rate per locus)
+  feat_mutation(par_prior("theta", sample.int(100, 1))) + # add a prior
+  sumstat_nucleotide_div() + 
+  sumstat_seg_sites() + 
+  sumstat_sfs() #+ # site freq spectrum, defaults to all pops
+  #sumstat_jsfs(name = "jsfs_12", populations = c(1,2)) # joint sfs for 2 pops
+  #sumstat_dna() # generates seq data
+
+# check model
+check_model(model)
+
+# view model in ms form
+model # see model
+
+# simulate
+sumstats <- simulate(model, seed = 15, nsim=100)
+
+# get names of list options
+map(sumstats, ~names(.x))[1]
+
+plot(sumstats[[1]]$pi)
+plot(sumstats[[1]]$sfs)
+
+# view snps for single loci
+sumstats[[1]]$seg_sites
+
+# plot SFS
+barplot(sumstats)
+map(sumstats, "sfs")
+sfs_out <- map(sumstats$sfs, ~.x / sum(.x)) %>% purrr::as_vector() %>% 
+  tibble(sfs=., numb=seq_along(stats1[[1]]))
+ggplot() + geom_col(data=sfs_out, aes(x=numb, y=sfs), fill="cadetblue4")
+# map_depth(sumstats,1, print("sfs"))
+
+# plot nucleotide diversity against mutation rates
+mean_pi <- sapply(sumstats, function(x) mean(x$pi))
+theta <- sapply(sumstats, function(x) x$pars[["theta"]])
+
+plot(theta, mean_pi, pch = 19, col = "orange", 
+     xlab = "Mutation rate (theta)",
+     ylab = "Nucleotide Diversity (mean pi)")
+abline(lm(mean_pi ~ theta), col = "gray", lty = 2, lwd=2)
+
+
+```
+ 
  
