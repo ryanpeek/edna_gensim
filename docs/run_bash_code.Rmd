@@ -1,0 +1,48 @@
+---
+title: "running_bash_code"
+author: "Ryan Peek"
+date: "Updated: `r format(Sys.Date())`"
+output: 
+  html_document:
+    highlight: pygments
+    theme: yeti
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options("prompt" = "$ ")
+options("continue" = "$ ")
+options(width = 70)
+
+#outdir <- paste0("tmpout")
+#if (!file.exists(outdir)) dir.create(outdir, recursive = TRUE)
+#knitr::opts_chunk$set(engine="bash", echo=TRUE, comment="output:", prompt = TRUE)
+#fig.path=paste0(outdir, "/p-"))
+knitr::opts_knit$set(root.dir=here::here())
+
+#knitr::opts_chunk$set(message = FALSE)
+#knitr::opts_chunk$set(warning = FALSE)
+
+suppressPackageStartupMessages({
+  library(here)
+})
+
+```
+
+## R Markdown with `bash`
+
+```{bash, engine="bash", comment="output:", prompt = TRUE}
+pwd
+ls
+
+```
+
+
+```{r, engine="bash", comment="output:", prompt=FALSE}
+cd docs 
+pwd
+ls *JPG
+
+```
+
+
