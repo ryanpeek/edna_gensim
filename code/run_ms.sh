@@ -45,7 +45,7 @@ do
         #run sims
         mkdir ${n}_${N}_${m}
         echo "#!/bin/bash -l
-        ~/ms/msdir/ms ${n} ${nruns} -t ${theta} > ${n}_${N}_${m}/${output}.ms" > ${n}_${N}_${m}/ms_run.sh
+        ms ${n} ${nruns} -t ${theta} > ${n}_${N}_${m}/${output}.ms" > ${n}_${N}_${m}/ms_run.sh
         sbatch -t $stime --mem=16G ${n}_${N}_${m}/ms_run.sh
 
         echo -e "\n"

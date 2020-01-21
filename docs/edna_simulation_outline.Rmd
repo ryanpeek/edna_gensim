@@ -42,72 +42,141 @@ For technical simulations, we'll want to tune with these parameters:
  - Sequencing depth per loci (more seq, more allelic depth)
  - Number of individuals present
  
+*From will*:
+ - for **ms**: use a mutation rate that makes sense given the length of reads that you plan to recover (if the per base is 1x10^-8 and you have loci of 84 bp, you'd use a mutation rate of 8.4x10^-7). The `run_ms.sh` calculates pop-sized scaled mutation rate by default.
+ 
+ - for **coala**: It takes pop-size scaled mutation rate, so just times that by 2*Ne for the theta argument. 
+
+ - [ms pdf and program download here](https://uchicago.app.box.com/s/l3e5uf13tikfjm7e1il1eujitlsjdx13)
+ 
+ 
  > Assume even coverage across individuals, how many loci/length/coverage gives best chance of detecting **_X_** number of individuals?
  
  Make a plot of # of Alleles (X axis) vs. # of Loci (Y axis).
  
+### Using `skeleSim`
+
+```{r loadskeleSim, eval=FALSE}
+
+library(skeleSim) #https://github.com/christianparobek/skeleSim
+
+# Run the app
+skeleSimGUI()
  
-### Using `coala`
+```
+
+For a [Sample Size analysis](https://cran.r-project.org/web/packages/skeleSim/vignettes/SampleSize.html), we can play with the following:
+
+ - Number of Populations
+ - Migration Rates/Type of Model
+ - Seq Lengths
+ - Number of Loci
+ - Type of Locus
+
+
+### Using `coala` and `ms`
 
  - See [here](https://cran.r-project.org/web/packages/coala/vignettes/coala-intro.html)
 
- 
-Here we try a simulation of:
- - **sample_size** = 1 population, 5 individuals
- - **loci** = 10
- - **loci_length** = 100
- - **mutation_rate**(theta) = 1
+`coala` is a package written by Staab and Metzler (2016). `ms` is a program written by Hudson (2007). We need to load packages and set `ms` as the simulator. Also see `skelesim` (Parobek et al. 2017).
 
-```{r simulation1}
+```{r loadSims}
 
 library(purrr)
 library(tidyverse)
 library(coala)
+# library(msr) # https://github.com/vsbuffalo/msr, devtools::install_github("vsbuffalo/msr")
 library(phyclust) # to use ms sim
 activate_ms(priority = 500)
 
 # list simulators
 list_simulators()
+```
 
-# a sample size vector: defines the number of populations and the number of individuals sampled from each pop
-# so integer vector of indiv sampled from corresponding pop
+### First Model
 
-# 1 Population, 5 indiv
+Here we try a simulation of:
+
+ - **sample_size** = 1 population, 5 individuals
+ - **loci** = 5
+ - **loci_length** = 100
+
+```{r Sim5a5a100}
+
+# set up the population-size scaled mutation rate (4*N*mu)
+ll <- 84 # loci length
+mu <- 1e-4 # mutation rate
+(ll_mu <- ll*mu) # loci length scaled rate?
+N <- 20 # effective pop size
+(pop_size_r <- 4*N*ll_mu)
+
+# 1 Populations, 5 indiv
 model <- coal_model(sample_size = c(5), loci_number = 5, 
                     loci_length = 100, ploidy = 2) +
-  feat_mutation(rate = 1, model = "IFS") + # rate= 4*N*mu (mutation rate per locus)
-  feat_mutation(par_prior("theta", sample.int(100, 1))) + # add a prior
+  feat_mutation(rate = pop_size_r, model = "IFS") + # rate= 4*N0*mu
+  feat_mutation(par_prior("theta", runif(1, .5, 1))) + # add a prior
   sumstat_nucleotide_div() + 
-  sumstat_seg_sites() + 
-  sumstat_sfs() #+ # site freq spectrum, defaults to all pops
+  sumstat_seg_sites() +
+  sumstat_sfs() # site freq spectrum, defaults to all pops
   #sumstat_jsfs(name = "jsfs_12", populations = c(1,2)) # joint sfs for 2 pops
   #sumstat_dna() # generates seq data
 
 # check model
 check_model(model)
-
-# view model in ms form
-model # see model
+model # view model in ms form
 
 # simulate
-sumstats <- simulate(model, seed = 15, nsim=100)
+sumstats <- simulate(model, seed = 15, nsim=10)
 
-# get names of list options
-map(sumstats, ~names(.x))[1]
+# setup of list of names
+(vecNames <- sprintf("s%03d", 1:10))
 
-plot(sumstats[[1]]$pi)
+# now add to list of sims
+sumstats <- purrr::set_names(sumstats, nm = vecNames)
+
+# double check
+map(sumstats, ~names(.x))
+
+# get just pi
+pi_df <- map(sumstats, ~.x["pi"]) %>% flatten() %>% bind_cols() %>% 
+  rename_all(., ~vecNames) %>% 
+  pivot_longer(cols = c(1:10), values_to =  "pi")# %>% View()
+
+# ggplot
+ggplot() + 
+  geom_boxplot(data=pi_df, aes(y=pi, x=name, group=name)) + 
+  geom_point(data=pi_df, aes(x = name, y=pi), alpha=.5) +
+  labs(x="")
+
+# get seg sites
+#ss_df <- 
+# this only pulls 3rd in list of seg sites
+map(sumstats, ~pluck(.x[["seg_sites"]][[3]])) %>% simplify()
+
+# test plots
+barplot(sumstats[["s001"]][["sfs"]])
 plot(sumstats[[1]]$sfs)
 
-# view snps for single loci
-sumstats[[1]]$seg_sites
-
 # plot SFS
-barplot(sumstats)
-map(sumstats, "sfs")
-sfs_out <- map(sumstats$sfs, ~.x / sum(.x)) %>% purrr::as_vector() %>% 
-  tibble(sfs=., numb=seq_along(stats1[[1]]))
-ggplot() + geom_col(data=sfs_out, aes(x=numb, y=sfs), fill="cadetblue4")
-# map_depth(sumstats,1, print("sfs"))
+(sfs_df <- map(sumstats, "sfs")  %>% bind_rows())
+
+# single simulation
+barplot(sfs_df$sim_001 / sum(sfs_df$sim_001), 
+        names.arg = seq_along(sfs_df$sim_001), 
+        col = "darkblue")
+barplot(sfs_df$sim_004 / sum(sfs_df$sim_004), 
+        names.arg = seq_along(sfs_df$sim_004), 
+        col = "skyblue", add=TRUE, width = .8)
+barplot(sfs_df$sim_003 / sum(sfs_df$sim_003), 
+        names.arg = seq_along(sfs_df$sim_003), 
+        col = "slateblue", add=TRUE, width = .5)
+
+
+sfs_out <- rowMeans(sfs_df / sum(sfs_df)) %>% 
+  purrr::as_vector()
+sfs_df2 <- tibble("sim"=vecNames[-1], sfs_out)
+  
+ggplot() + geom_col(data=sfs_df2, aes(x=sim, y=sfs_out), fill="cadetblue4")
 
 # plot nucleotide diversity against mutation rates
 mean_pi <- sapply(sumstats, function(x) mean(x$pi))
@@ -120,5 +189,10 @@ abline(lm(mean_pi ~ theta), col = "gray", lty = 2, lwd=2)
 
 
 ```
+ 
+ 
+Other notes: 
+
+ - **ABC** https://cran.r-project.org/web/packages/coala/vignettes/coala-abc.html
  
  
