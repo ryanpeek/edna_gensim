@@ -104,20 +104,19 @@ Here we try a simulation of:
 ```{r Sim5a5a100}
 
 # set up the population-size scaled mutation rate (4*N*mu)
-ll <- 84 # loci length
-mu <- 1e-4 # mutation rate
-(ll_mu <- ll*mu) # loci length scaled rate?
-N <- 20 # effective pop size
-(pop_size_r <- 4*N*ll_mu)
+# ll <- 84 # loci length
+# mu <- 1e-4 # mutation rate
+# (ll_mu <- ll*mu) # loci length scaled rate?
+# N <- 20 #  pop size
+# (pop_size_r <- 4*N*ll_mu)
 
 # 1 Populations, 5 indiv
-model <- coal_model(sample_size = c(5), loci_number = 5, 
-                    loci_length = 100, ploidy = 2) +
-  feat_mutation(rate = pop_size_r, model = "IFS") + # rate= 4*N0*mu
-  feat_mutation(par_prior("theta", runif(1, .5, 1))) + # add a prior
-  sumstat_nucleotide_div() + 
-  sumstat_seg_sites() +
-  sumstat_sfs() # site freq spectrum, defaults to all pops
+model <- coal_model(sample_size = c(10), loci_length = 100,
+                    loci_number = 100, ploidy = 2) +
+  feat_mutation(rate = 1, model = "IFS") + # rate= 4*N0*mu
+  #sumstat_nucleotide_div() + 
+  sumstat_seg_sites() #+
+  #sumstat_sfs() # site freq spectrum, defaults to all pops
   #sumstat_jsfs(name = "jsfs_12", populations = c(1,2)) # joint sfs for 2 pops
   #sumstat_dna() # generates seq data
 
@@ -126,19 +125,24 @@ check_model(model)
 model # view model in ms form
 
 # simulate
-sumstats <- simulate(model, seed = 15, nsim=10)
+ms_sims <- simulate(model, seed = 15, nsim=10)
 
 # setup of list of names
 (vecNames <- sprintf("s%03d", 1:10))
 
 # now add to list of sims
-sumstats <- purrr::set_names(sumstats, nm = vecNames)
+ms_sims <- purrr::set_names(ms_sims, nm = vecNames)
 
 # double check
-map(sumstats, ~names(.x))
+map(ms_sims, ~names(.x))
+
+# get seg sites
+get_snps(ms_sims[["s001"]]$seg_sites)
+
+
 
 # get just pi
-pi_df <- map(sumstats, ~.x["pi"]) %>% flatten() %>% bind_cols() %>% 
+pi_df <- map(ms_sims, ~.x["pi"]) %>% flatten() %>% bind_cols() %>% 
   rename_all(., ~vecNames) %>% 
   pivot_longer(cols = c(1:10), values_to =  "pi")# %>% View()
 
@@ -151,14 +155,14 @@ ggplot() +
 # get seg sites
 #ss_df <- 
 # this only pulls 3rd in list of seg sites
-map(sumstats, ~pluck(.x[["seg_sites"]][[3]])) %>% simplify()
+map(ms_sims, ~pluck(.x[["seg_sites"]][[3]])) %>% simplify()
 
 # test plots
-barplot(sumstats[["s001"]][["sfs"]])
-plot(sumstats[[1]]$sfs)
+barplot(ms_sims[["s001"]][["sfs"]])
+plot(ms_sims[[1]]$sfs)
 
 # plot SFS
-(sfs_df <- map(sumstats, "sfs")  %>% bind_rows())
+(sfs_df <- map(ms_sims, "sfs")  %>% bind_rows())
 
 # single simulation
 barplot(sfs_df$sim_001 / sum(sfs_df$sim_001), 
@@ -179,8 +183,8 @@ sfs_df2 <- tibble("sim"=vecNames[-1], sfs_out)
 ggplot() + geom_col(data=sfs_df2, aes(x=sim, y=sfs_out), fill="cadetblue4")
 
 # plot nucleotide diversity against mutation rates
-mean_pi <- sapply(sumstats, function(x) mean(x$pi))
-theta <- sapply(sumstats, function(x) x$pars[["theta"]])
+mean_pi <- sapply(ms_sims, function(x) mean(x$pi))
+theta <- sapply(ms_sims, function(x) x$pars[["theta"]])
 
 plot(theta, mean_pi, pch = 19, col = "orange", 
      xlab = "Mutation rate (theta)",
@@ -191,8 +195,39 @@ abline(lm(mean_pi ~ theta), col = "gray", lty = 2, lwd=2)
 ```
  
  
-Other notes: 
+# Scaling $\theta$
 
- - **ABC** https://cran.r-project.org/web/packages/coala/vignettes/coala-abc.html
- 
- 
+ - Typically $\theta$ may be around 0.0001 per bp
+ - Multiply X bp * 1e-8
+
+```
+theta <- 4*N*mu*popsize 
+```
+
+Need to scale by bp:      
+1 out of 1000 bp differs = theta = 1
+
+## Simulations
+
+### With 10 diploid indiv.
+
+      100bp 1000bp
+theta 0.1   1  
+n     20    20
+nruns 100   100
+
+### With 100 diploid indiv.
+
+      100bp 1000bp
+theta 0.1   1  
+n     200   200
+nruns 100   100
+
+`bash tst_ms.sh 200 200 1 results`
+
+## Next Steps
+
+We want to draw a random locus, and then a random individual:
+
+ - then observe # of unique haplotypes in that individual
+ - plot vs. number of total loci possible
