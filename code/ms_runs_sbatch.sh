@@ -1,3 +1,5 @@
+#!/bin/bash -l
+
 sh ms_simulate_haplotypes.sh 1 100 100 10
 sh ms_simulate_haplotypes.sh 2 100 100 10
 sh ms_simulate_haplotypes.sh 3 100 100 10

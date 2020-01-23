@@ -43,14 +43,14 @@ args <- data %>% purrr::cross_df() %>%
 # A SINGLE LIST OF JUST PARAMS --------------------------------------------
 
 # write out as single list
-readr::write_lines(args$call_list, path = "data/ms_params_multi")
+#readr::write_lines(args$call_list, path = "data/ms_params_multi")
 
 # append to existing file?
 # readr::write_lines(call, path = "data/ms_params_multi.txt", append = T)
 
 
 
-# Make List Call for local runs -------------------------------------------
+# MAKE SH CALL USING GLUE -------------------------------------------
 
 # want to generate sh calls
 # "sh simulate_haplotypes.sh 1 100 100 10"
@@ -58,12 +58,22 @@ readr::write_lines(args$call_list, path = "data/ms_params_multi")
 args <- args %>% 
   mutate(local_runs = glue('sh ms_simulate_haplotypes.sh {nInd} {nLoci} {ll} {coverage}'))
 
-readr::write_lines(args$local_runs, path = "data/sh_runs_multi")
+
+# WRITE TO .sh FILE FOR CLUSTER RUN ----------------------------------------
+
+# make bash header for shell file
+cat('#!/bin/bash -l\n\n', file = "code/ms_runs_sbatch.sh")
+readr::write_lines(args$local_runs, path = "code/ms_runs_sbatch.sh", append = T)
 
 
+# RUN SIMULATIONS ---------------------------------------------------------
 
-# NOTES -------------------------------------------------------------------
+## Put scripts on server:
+# sftp put ms_runs_sbatch.sh
+## SBATCH RUN OF ALL FILES: 
+# sbatch -t 2000 -p high ms_runs_sbatch.sh
 
-### maybe just need this: (can run locally with ~/Downloads/msdir/ms 4 2 -t 1)
-### srun -t 20 simulate_haplotypes.sh 10 100 100 10
+## RUN LOCAL/SINGLE RUN (nInd, nLoci, LociLength, Coverage)
+# sh ms_simulate_haplotypes 5 100 100 10
+
 

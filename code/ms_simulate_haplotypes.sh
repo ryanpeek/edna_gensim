@@ -34,7 +34,8 @@ x=1
 while [ $x -le $reps ] 
 do
 
-	~/Downloads/msdir/ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${x}.out
+	#LOCAL CALL ~/Downloads/msdir/ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${x}.out
+	ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${x}.out
 	perl ms_sample.pl results/ms_${nInd}_${nLoci}_${theta}_${x}.out $cov > results/sample_${nInd}_${nLoci}_${theta}_${x}.out
 	x=$(( $x + 1 ))
 
