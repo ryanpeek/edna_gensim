@@ -30,6 +30,8 @@ suppressPackageStartupMessages({
 
 To assess how much eDNA is required to identify the number of individuals in a population, we need to first play around with the parameters that may affect this. There are environmental/physical factors which play a role in how much eDNA is available in a sample, such as individual shedding rates, local decay rates, and movement through water/environment. These are separate of the intent of these simulations. We want to know if conditions are ideal, how much DNA would it require to actually detect an individual or a small population? 
 
+### Parameters 
+
 To that end there are a few main components or parameters of interest:
 
  1. The number of individuals we want to detect (i.e, 1, 5, 100)
@@ -41,7 +43,45 @@ For technical simulations, we'll want to tune with these parameters:
  - Length of loci
  - Sequencing depth per loci (more seq, more allelic depth)
  - Number of individuals present
+
+### Bash Params
+
+To generate **$\theta$**:
+ - $\mu$ = `r 1e-8`
+ - $llength$ = number of basepairs
+ - $N_e$ = Coalescent effective size 
+
+Then need:
+ - $nInd$ = number of individuals
+ - $ploidy$ = ploidy of individuals
+ - $gc$ = gene copies
+ - $nLoci$ = number of loci analyzed
+ - $coverage$ = mean coverage per locus analyzed
+
+### Combinations
+
+`r 2^2*3` possible combinations of the following parameters:
+
+Vary number of individuals most, because that's we want to know...based on what combinations of things can we detect or not detect diff numbers of indiv
+$nInd$ = c(1:100)
+$nLoci$ = c(100, 1000)
+$llength$ = c(100, 1000, 10000)
+$coverage$ = c(10, 100)
+
+
+
+### Plots
+
+ > Individual Parameter sets will each have something like this: 
+ - mean # of haplotype per locus vs # of sims
+ - # of haplotypes vs. # of loci (from one simulation)
+
+ > Overall Summary 
+ - Plot of nIndividuals by mean # of haplotypes per locus, holding some vars constant to generate a curve/line (see pic). Should show range (point ranges/boxplots) of the haplotypes
+
+
  
+### Notes from Will
 *From will*:
  - for **ms**: use a mutation rate that makes sense given the length of reads that you plan to recover (if the per base is 1x10^-8 and you have loci of 84 bp, you'd use a mutation rate of 8.4x10^-7). The `run_ms.sh` calculates pop-sized scaled mutation rate by default.
  
@@ -125,7 +165,7 @@ check_model(model)
 model # view model in ms form
 
 # simulate
-ms_sims <- simulate(model, seed = 15, nsim=10)
+ms_sims <- simulate(model, seed = 15, nsim=1)
 
 # setup of list of names
 (vecNames <- sprintf("s%03d", 1:10))
