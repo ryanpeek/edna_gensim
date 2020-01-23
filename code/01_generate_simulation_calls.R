@@ -46,7 +46,7 @@ args <- data %>% purrr::cross_df() %>%
 #readr::write_lines(args$call_list, path = "data/ms_params_multi")
 
 # append to existing file?
-# readr::write_lines(call, path = "data/ms_params_multi.txt", append = T)
+# readr::write_lines(call, path = "data/ms_params_multi", append = T)
 
 
 
