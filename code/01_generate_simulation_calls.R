@@ -6,7 +6,7 @@ library(glue)
 
 # Simple ms call ----------------------------------------------------------
 
-nInd <- seq(1:100)
+nInd <- seq(1:50)
 nLoci <- 100 # mean number of loci analyzed (100 or 1000)
 ploidy <- 2 # diploid individuals
 gc<- nInd * ploidy # gene copies (for ms)

@@ -2,6 +2,9 @@
 
 $m = $ARGV[0]; #ms output file
 $c = $ARGV[1]; #mean coverage 
+$e = $ARGV[2]; #error rate 0-1, 0.1 for 10%
+$t = $ARGV[3]; #threshold to count haplotypes, 2 if haplotype needs to be seen twice
+$ecount=0; #error count
 
 open(FILE, "<$m") or die;
 
@@ -40,13 +43,19 @@ $x=1;
 while ($x <= $s) {
 	$sl=int(rand($l));
 	$sn=int(rand($n));
-	$hash[$sl]{$data[$sl][$sn]}++;
+	$seq=$data[$sl][$sn];
+	$r=rand(1);
+	if ($r <= $e) { $seq = $seq . "_" . $ecount; $ecount++; }
+	$hash[$sl]{$seq}++;
 	$x++;
 }
 
 $x=0;
 while ($x < $l) {
-	$nhaps=keys(%{$hash[$x]});
+	$nhaps=0;
+	foreach $key ( keys(%{$hash[$x]}) ) {
+		if ($hash[$x]{$key} >= $t) { $nhaps++; } 
+	}
 	print "$nhaps\n";
 	$x++;
 }

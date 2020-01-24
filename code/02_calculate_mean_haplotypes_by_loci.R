@@ -32,39 +32,13 @@ files_df <- filenames %>% tibble::enframe(name = "fileno", value = "filename") %
 # ms_params <- read_delim(file = "data/ms_params_50inds_2020_01_22.txt", delim = " ", 
 #                         col_names = c("nInd", "nLoci", "ll", "coverage")) 
 
-# Read a Single File ------------------------------------------------------
-
-
-dat <- read_tsv(file = files_df$filename[[8]], col_names = FALSE)
-
-# plot # of sims by mean # of haplotypes per locus
-dat_means <- dat %>% 
-  summarize_all(mean, na.rm=TRUE) %>% 
-  pivot_longer(cols=starts_with("X"), names_to = "sims")
-
-hist(dat_means$value)
-
-# from one simulation
-# number of loci vs. # of haplotypes
-hist(dat$X77)
-
-
 # Read Multiple Files with Purrr ------------------------------------------
 
 # reads all in at once, keeps data as list col
 
 library(tictoc) # to time stuff
-
-# this is normal method (2x slower than furrr)
-# tic()
-# dataAll <- files_df %>% 
-#   slice(1:100) %>% 
-#   mutate(dat = map(filename, ~read_tsv(.x, col_names = FALSE)))
-# toc()
-
-# use furrr and work in parallel
-library(furrr)
-plan(multiprocess)
+library(furrr) # use furrr and work in parallel
+#plan(multiprocess) this does nothing
 
 # now run in parallel
 tic()
@@ -73,7 +47,15 @@ dataAll <- files_df %>%
   mutate(dat = furrr::future_imap(filename, ~read_tsv(.x, col_names = FALSE), .progress = TRUE))
 toc()
 
-# 65.656 sec elapsed
+# 70.242 sec elapsed
+
+### try without parallel
+# this is normal method (>2x slower than furrr)
+# tic()
+# dataAll <- files_df %>% 
+#   slice(1:100) %>% 
+#   mutate(dat = map(filename, ~read_tsv(.x, col_names = FALSE)))
+# toc()
 
 
 # Calculate Mean Number of Haplotypes per Locus ---------------------------
@@ -157,6 +139,30 @@ ggsave("figs/ms_mean_haplotypes_100x_50nInd.pdf", device = cairo_pdf,
 
 # Save Data ---------------------------------------------------------------
 
+dataAll2 <- dataAll[1,] %>% tidyr::pivot_wider(dat)
+
+library(feather)
+feather::write_feather(dataAll, path = "data/dataAll_10x_100x.feather")
+#vroom::vroom_write(dataAll, "data/tst.tsv.gz")
+
 save(dataAll, file = "data/dataAll_for_10x_100x.rda")
 
 save(mean_haps_df, file= "data/mean_haps_df_10x_100x.rda")
+
+
+# Read a Single File ------------------------------------------------------
+
+
+# dat <- read_tsv(file = files_df$filename[[8]], col_names = FALSE)
+# 
+# # plot # of sims by mean # of haplotypes per locus
+# dat_means <- dat %>% 
+#   summarize_all(mean, na.rm=TRUE) %>% 
+#   pivot_longer(cols=starts_with("X"), names_to = "sims")
+# 
+# hist(dat_means$value)
+# 
+# # from one simulation
+# # number of loci vs. # of haplotypes
+# hist(dat$X77)
+

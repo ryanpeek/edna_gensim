@@ -1,5 +1,5 @@
 ---
-title: "eDNA Simulation Outline"
+title: "eDNA SDERP: Simulations"
 author: "Ryan Peek"
 date: "Updated: `r format(Sys.Date())`"
 output: 
@@ -26,77 +26,114 @@ suppressPackageStartupMessages({
 
 ```
 
-## Overview
+## Overview & Objective
 
-To assess how much eDNA is required to identify the number of individuals in a population, we need to first play around with the parameters that may affect this. There are environmental/physical factors which play a role in how much eDNA is available in a sample, such as individual shedding rates, local decay rates, and movement through water/environment. These are separate of the intent of these simulations. We want to know if conditions are ideal, how much DNA would it require to actually detect an individual or a small population? 
+To assess how much eDNA is required to identify the number of individuals in a population, we need to first play around with the parameters that may affect this. There are a number of environmental and physical factors which play a role in how much eDNA is available in a sample, such as individual shedding rates, local DNA decay rates, and movement through water/environment. These are separate of the intent of these simulations.
 
-### Parameters 
+ >  - We want to know, assuming ideal conditions, how much DNA/sequencing/coverage would it require to actually detect a given individual(s)?
 
-To that end there are a few main components or parameters of interest:
+### Simulation General Parameters 
 
- 1. The number of individuals we want to detect (i.e, 1, 5, 100)
- 2. $\theta$ (mutation rate) which relates to length, and varies between organism/sequences (0.1, 1, 10)
- 3. Number of Loci (10, 100, 1000, 10000)?
+Assuming even sequencing coverage across individuals, what combination of loci/length/coverage/theta gives best chance of detecting **_X_** number of individuals?
+
+**The main parameters of interest:**
+
+ 1. **nInd** = number of individuals we want to detect (i.e, 1, 5, 100)
+ 2. $\theta$  = which relates to loci length, $\mu$, and $N_e$. Can vary between organism/sequences (i.e., 0.1, 1, 10)
+ 3. **nLoci** = Number of Loci sequenced/analyzed (10, 100, 1000, 10000)
+ 4. **coverage** = Coverage per locus analyzed
+ 5. **error** = The error associated with sequencing or miscalls. Helps build in error (singleton haplotypes) into simulations
  
-For technical simulations, we'll want to tune with these parameters:
- - Number of loci
- - Length of loci
- - Sequencing depth per loci (more seq, more allelic depth)
- - Number of individuals present
+### Specific `bash` Parameters
 
-### Bash Params
+Need to calculate $\theta$ = 4 * $N_e$ * $\mu$ * $llength$ 
 
-To generate **$\theta$**:
- - $\mu$ = `r 1e-8`
+ - $\mu$ = Assuming general mutation rate of 1e^-8^
  - $llength$ = number of basepairs
- - $N_e$ = Coalescent effective size 
+ - $N_e$ = Coalescent effective size, using conservative est of 25,000
+ 
+**Other Parameters:**
 
-Then need:
  - $nInd$ = number of individuals
- - $ploidy$ = ploidy of individuals
- - $gc$ = gene copies
  - $nLoci$ = number of loci analyzed
  - $coverage$ = mean coverage per locus analyzed
-
-### Combinations
-
-`r 2^2*3` possible combinations of the following parameters:
-
-Vary number of individuals most, because that's we want to know...based on what combinations of things can we detect or not detect diff numbers of indiv
-$nInd$ = c(1:100)
-$nLoci$ = c(100, 1000)
-$llength$ = c(100, 1000, 10000)
-$coverage$ = c(10, 100)
+ - $ploidy$ = ploidy of individuals
+ - $gc$ = gene copies
+ - $error$ = percent sequencing error (singleton/miscalled haplos)
 
 
+### Accounting for Sequencing Error
 
-### Plots
+ - Sequencing error is random, but default keeps novel haplotypes that occur only once
+ - Better approach would build in ways to compensate for this, (i.e., filter/ignore singleton haplotypes)
 
- > Individual Parameter sets will each have something like this: 
- - mean # of haplotype per locus vs # of sims
- - # of haplotypes vs. # of loci (from one simulation)
+**Our approach:**
 
- > Overall Summary 
- - Plot of nIndividuals by mean # of haplotypes per locus, holding some vars constant to generate a curve/line (see pic). Should show range (point ranges/boxplots) of the haplotypes
+ - Only consider 2+ haplotypes
+ - 10% error rate, make unique haplotypes
+ - run for 100x with 10% error and threshold of 2
 
+
+### Model Combinations
+
+Vary number of individuals most, because that's we want to know...based on what combinations of things can we detect or not detect diff individuals. Here we use `r 50*2*3*2` possible model combinations.
+
+ - $nInd$ = c(1:50)
+ - $nLoci$ = c(100, 1000)
+ - $llength$ = c(100, 1000, 10000)
+ - $coverage$ = c(10, 100)
+ - $error$ = (0.10)
+ 
+## Model Steps
+
+1. Using `ms`, generate segregating site data based on the parameters above. Typical call looks like: `ms $gc $nLoci -t $theta > ms.out` with a 1000 replicates. See [this shell script to do simulations](https://github.com/ryanpeek/edna_gensim/blob/master/code/ms_simulate_haplotypes.sh).
+2. Use a `perl` script ([here](https://github.com/ryanpeek/edna_gensim/blob/master/code/ms_sample.pl)) to randomly draw and calculate the number of unique haplotypes from each replicate within each locus in simulated data
+3. Using a 10% error rate and a threshold of 2 or greater haplotypes, draw and calculate number of unique haplotypes per `ms` replicate/individual.
+4. Run all possible parameter combinations above. See this [R script](https://github.com/ryanpeek/edna_gensim/blob/master/code/01_generate_simulation_calls.R) to generate combinations and the [bash script](https://github.com/ryanpeek/edna_gensim/blob/master/code/ms_runs_sbatch.sh) used to run everything (assuming you have `ms`) on a cluster or computer. To run 600 models (50 individuals) took about 9 hours on the farm cluster at UCD.
+4. Using `R`, aggregate this data and visualize as *mean* number of haplotypes vs. Number of Individuals across all possible parameter combos. Script to do this is [here](https://github.com/ryanpeek/edna_gensim/blob/master/code/02_calculate_mean_haplotypes_by_loci.R).
+
+### RESULTS: Sim001-no error
+
+**10X**
+
+```{r 10x}
+
+knitr::include_graphics(paste0(here::here(),"/figs/ms_mean_haplotypes_10x_50nInd.png"))
+
+```
+
+**100X**
+
+```{r 100x}
+
+knitr::include_graphics(paste0(here::here(),"/figs/ms_mean_haplotypes_100x_50nInd.png"))
+
+```
+
+### RESULTS: Sim002-10% error with threshold=2+
 
  
-### Notes from Will
-*From will*:
+ 
+## Forthcoming Options
+
+ - variation in DNA quantity among individuals
+ - try other distribution properties (median, mode, min, max)
+ - Empirical test, pool DNA & RAD, equal or not?
+
+<!--
+## ADDITIONAL RESOURCES 
+### From Will
+
  - for **ms**: use a mutation rate that makes sense given the length of reads that you plan to recover (if the per base is 1x10^-8 and you have loci of 84 bp, you'd use a mutation rate of 8.4x10^-7). The `run_ms.sh` calculates pop-sized scaled mutation rate by default.
  
  - for **coala**: It takes pop-size scaled mutation rate, so just times that by 2*Ne for the theta argument. 
 
  - [ms pdf and program download here](https://uchicago.app.box.com/s/l3e5uf13tikfjm7e1il1eujitlsjdx13)
  
- 
- > Assume even coverage across individuals, how many loci/length/coverage gives best chance of detecting **_X_** number of individuals?
- 
- Make a plot of # of Alleles (X axis) vs. # of Loci (Y axis).
- 
-### Using `skeleSim`
 
-```{r loadskeleSim, eval=FALSE}
+### Using `skeleSim`**
+
+```{r loadskeleSim, eval=FALSE, echo=FALSE}
 
 library(skeleSim) #https://github.com/christianparobek/skeleSim
 
@@ -120,7 +157,7 @@ For a [Sample Size analysis](https://cran.r-project.org/web/packages/skeleSim/vi
 
 `coala` is a package written by Staab and Metzler (2016). `ms` is a program written by Hudson (2007). We need to load packages and set `ms` as the simulator. Also see `skelesim` (Parobek et al. 2017).
 
-```{r loadSims}
+```{r loadSims, echo=FALSE, eval=FALSE}
 
 library(purrr)
 library(tidyverse)
@@ -133,7 +170,7 @@ activate_ms(priority = 500)
 list_simulators()
 ```
 
-### First Model
+#### First Model
 
 Here we try a simulation of:
 
@@ -141,7 +178,7 @@ Here we try a simulation of:
  - **loci** = 5
  - **loci_length** = 100
 
-```{r Sim5a5a100}
+```{r Sim5a5a100, eval=FALSE, echo=FALSE}
 
 # set up the population-size scaled mutation rate (4*N*mu)
 # ll <- 84 # loci length
@@ -235,39 +272,4 @@ abline(lm(mean_pi ~ theta), col = "gray", lty = 2, lwd=2)
 ```
  
  
-# Scaling $\theta$
-
- - Typically $\theta$ may be around 0.0001 per bp
- - Multiply X bp * 1e-8
-
-```
-theta <- 4*N*mu*popsize 
-```
-
-Need to scale by bp:      
-1 out of 1000 bp differs = theta = 1
-
-## Simulations
-
-### With 10 diploid indiv.
-
-      100bp 1000bp
-theta 0.1   1  
-n     20    20
-nruns 100   100
-
-### With 100 diploid indiv.
-
-      100bp 1000bp
-theta 0.1   1  
-n     200   200
-nruns 100   100
-
-`bash tst_ms.sh 200 200 1 results`
-
-## Next Steps
-
-We want to draw a random locus, and then a random individual:
-
- - then observe # of unique haplotypes in that individual
- - plot vs. number of total loci possible
+-->
