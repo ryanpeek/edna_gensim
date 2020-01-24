@@ -43,7 +43,7 @@ args <- data %>% purrr::cross_df() %>%
 # A SINGLE LIST OF JUST PARAMS --------------------------------------------
 
 # write out as single list
-#readr::write_lines(args$call_list, path = "data/ms_params_multi")
+readr::write_lines(args$call_list, path = "data/ms_params_50inds_2020_01_22.txt")
 
 # append to existing file?
 # readr::write_lines(call, path = "data/ms_params_multi", append = T)
