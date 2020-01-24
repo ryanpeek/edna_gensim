@@ -14,7 +14,6 @@ library(here)
 (filenames <- list.files(path = "data/simulations", pattern = ".out",full.names = TRUE))
 # using fs fs::dir_ls(path = "data/simulations/", regexp = "\\.out")
 
-
 # do some tidying
 files_df <- filenames %>% tibble::enframe(name = "fileno", value = "filename") %>%
   separate(col = filename, 
@@ -53,8 +52,28 @@ hist(dat$X77)
 # Read Multiple Files with Purrr ------------------------------------------
 
 # reads all in at once, keeps data as list col
+
+library(tictoc) # to time stuff
+
+# this is normal method (2x slower than furrr)
+# tic()
+# dataAll <- files_df %>% 
+#   slice(1:100) %>% 
+#   mutate(dat = map(filename, ~read_tsv(.x, col_names = FALSE)))
+# toc()
+
+# use furrr and work in parallel
+library(furrr)
+plan(multiprocess)
+
+# now run in parallel
+tic()
 dataAll <- files_df %>% 
-  mutate(dat = map(files_df$filename, ~read_tsv(.x, col_names = FALSE)))
+  #slice(1:100) %>% 
+  mutate(dat = furrr::future_imap(filename, ~read_tsv(.x, col_names = FALSE), .progress = TRUE))
+toc()
+
+# 65.656 sec elapsed
 
 
 # Calculate Mean Number of Haplotypes per Locus ---------------------------
@@ -69,7 +88,7 @@ meanHaplos_by_locus <- function(x) {
 mean_haps <- map(dataAll$dat, ~meanHaplos_by_locus(.x)) %>% 
   map2_df(., files_df$sampleID, ~mutate(.x, ID=.y))
 
-# clean a bit
+# clean a bit and refactor
 mean_haps_df <- mean_haps %>% 
   separate(col = ID, into = c("nInd","nLoci", "theta","coverage"), sep = "_", remove = F) %>%
   rename(mean_haplos=value) %>% 
@@ -78,9 +97,10 @@ mean_haps_df <- mean_haps %>%
   mutate(reps = as.integer(gsub(reps, pattern = "^X",replacement = "")))
 
 
-# PLOT --------------------------------------------------------------------
+# MEAN NUMBER HAPLOTYPES: 10X ----------------------------------------------------------------
 
-# number of individuals on X
+# filter to 10 X
+mean_haps_df_10x <- mean_haps_df %>% filter(coverage=="10")
 
 # make nice label names:
 lociNames <- c(`100`="No. Loci = 100",
@@ -89,7 +109,36 @@ thetaNames <- c(`0.1`="theta==0.1 (100)",
                 `1`="theta==1  (1000)",
                 `10`="theta==10  (10000)")
 
-ggplot() + geom_boxplot(data=mean_haps_df, aes(x=nInd, y=mean_haplos, group=nInd), 
+ggplot() + geom_boxplot(data=mean_haps_df_10x, aes(x=nInd, y=mean_haplos, group=nInd), 
+                        #outlier.shape = NA, 
+                        outlier.size = 0.5, outlier.alpha = 0.2) +
+  facet_grid(theta ~ nLoci, labeller= labeller(nLoci = as_labeller(lociNames),
+                                               theta = as_labeller(thetaNames, label_parsed))) +
+  theme_bw(base_family = "Roboto Condensed") +
+  scale_x_continuous(minor_breaks = seq(0,50,2))+
+  scale_y_continuous(breaks=seq(0,18,2))+
+  labs(y="Mean Number of Haplotypes", x="Number of Individuals",
+       title="Simulations of Mean Haplotypes at 10x Coverage",
+       caption="based on 1000 replicate simulations for each \n parameter combination, performed in the program *ms*")
+
+ggsave("figs/ms_mean_haplotypes_10x_50nInd.png", width = 11, height = 8.5, units = "in", dpi=300)
+ggsave("figs/ms_mean_haplotypes_10x_50nInd.pdf", device = cairo_pdf,
+       width = 11, height = 8.5, units = "in", dpi=300)  
+
+
+# MEAN NUMBER HAPLOTYPES: 100X ----------------------------------------------------------------
+
+# filter to 100 X
+mean_haps_df_100x <- mean_haps_df %>% filter(coverage=="100")
+
+# make nice label names:
+lociNames <- c(`100`="No. Loci = 100",
+               `1000`="No. Loci = 1,000")
+thetaNames <- c(`0.1`="theta==0.1 (100)",
+                `1`="theta==1  (1000)",
+                `10`="theta==10  (10000)")
+
+ggplot() + geom_boxplot(data=mean_haps_df_100x, aes(x=nInd, y=mean_haplos, group=nInd), 
                         #outlier.shape = NA, 
                         outlier.size = 0.5, outlier.alpha = 0.2) +
   facet_grid(theta ~ nLoci, labeller= labeller(nLoci = as_labeller(lociNames),
@@ -105,3 +154,9 @@ ggsave("figs/ms_mean_haplotypes_100x_50nInd.png", width = 11, height = 8.5, unit
 ggsave("figs/ms_mean_haplotypes_100x_50nInd.pdf", device = cairo_pdf,
        width = 11, height = 8.5, units = "in", dpi=300)  
 
+
+# Save Data ---------------------------------------------------------------
+
+save(dataAll, file = "data/dataAll_for_10x_100x.rda")
+
+save(mean_haps_df, file= "data/mean_haps_df_10x_100x.rda")
