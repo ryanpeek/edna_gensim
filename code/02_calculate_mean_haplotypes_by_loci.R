@@ -6,6 +6,14 @@ library(tidyverse)
 library(tidylog)
 library(here)
 
+# LOAD EXISTING DATA IF AVAIL. --------------------------------------------------------------
+
+load("data/sim001_mean_haps_df_10x_100x.rda") # mean_haps_df
+
+#load("data/sim002_err0.1_mean_haps_df_10x_100x.rda")
+#sim002_haps_df <- mean_haps_df
+#rm(mean_haps_df)
+
 # Get Data ----------------------------------------------------------------
 
 # get data dir
@@ -78,10 +86,8 @@ mean_haps_df <- mean_haps %>%
   mutate(reps = as.integer(gsub(reps, pattern = "^X",replacement = "")))
 
 
-# MEAN NUMBER HAPLOTYPES: 10X ----------------------------------------------------------------
 
-# filter to 10 X
-mean_haps_df_10x <- mean_haps_df %>% filter(coverage=="10")
+# MEAN NUMBER HAPLOTYPES: ALL ----------------------------------------------------------------
 
 # make nice label names:
 lociNames <- c(`100`="No. Loci = 100",
@@ -90,7 +96,47 @@ thetaNames <- c(`0.1`="theta==0.1 (100)",
                 `1`="theta==1  (1000)",
                 `10`="theta==10  (10000)")
 
-ggplot() + geom_boxplot(data=mean_haps_df_10x, aes(x=nInd, y=mean_haplos, group=nInd), 
+ggplot() + 
+  geom_boxplot(data=mean_haps_df %>% 
+                 filter(coverage=="10"), 
+               aes(x=nInd, y=mean_haplos, group=nInd, color=coverage),
+               #color="mediumpurple4",
+               outlier.shape = NA, # make points null
+               outlier.size = 0.5, outlier.alpha = 0.2) +
+  geom_boxplot(data=mean_haps_df %>% 
+                 filter(coverage=="100"), 
+               aes(x=nInd, y=mean_haplos, group=nInd, color=coverage),
+               #color="seagreen3",
+               outlier.shape = NA, # make points null
+               outlier.size = 0.5, outlier.alpha = 0.2) +
+  scale_color_viridis_d("Coverage")+
+  facet_grid(theta ~ nLoci, 
+             labeller= labeller(nLoci = as_labeller(lociNames), theta = as_labeller(thetaNames, label_parsed))) +
+  theme_bw(base_family = "Roboto Condensed") +
+  scale_x_continuous(minor_breaks = seq(0,50,2))+
+  scale_y_continuous(breaks=seq(0,18,2))+
+  labs(y="Mean Number of Haplotypes", x="Number of Individuals",
+       title="Simulations of Mean Haplotypes for 10x & 100x Coverage",
+       caption="based on 1000 replicate simulations for each \n parameter combination, performed in the program *ms*")
+
+ggsave("figs/ms_mean_haplotypes_10x100x_50nInd.png", width = 11, height = 8.5, units = "in", dpi=300)
+ggsave("figs/ms_mean_haplotypes_10x100x_50nInd.pdf", device = cairo_pdf,
+       width = 11, height = 8.5, units = "in", dpi=300)  
+
+
+# MEAN NUMBER HAPLOTYPES: 10X ----------------------------------------------------------------
+
+# filter to 10 X
+#mean_haps_df <- mean_haps_df %>% filter(coverage=="10")
+
+# make nice label names:
+lociNames <- c(`100`="No. Loci = 100",
+               `1000`="No. Loci = 1,000")
+thetaNames <- c(`0.1`="theta==0.1 (100)",
+                `1`="theta==1  (1000)",
+                `10`="theta==10  (10000)")
+
+ggplot() + geom_boxplot(data=mean_haps_df, aes(x=nInd, y=mean_haplos, group=nInd), 
                         #outlier.shape = NA, 
                         outlier.size = 0.5, outlier.alpha = 0.2) +
   facet_grid(theta ~ nLoci, labeller= labeller(nLoci = as_labeller(lociNames),
@@ -110,7 +156,7 @@ ggsave("figs/ms_mean_haplotypes_10x_50nInd.pdf", device = cairo_pdf,
 # MEAN NUMBER HAPLOTYPES: 100X ----------------------------------------------------------------
 
 # filter to 100 X
-mean_haps_df_100x <- mean_haps_df %>% filter(coverage=="100")
+#mean_haps_df <- mean_haps_df %>% filter(coverage=="100")
 
 # make nice label names:
 lociNames <- c(`100`="No. Loci = 100",
@@ -120,7 +166,7 @@ thetaNames <- c(`0.1`="theta==0.1 (100)",
                 `10`="theta==10  (10000)")
 
 # make the plots
-ggplot() + geom_boxplot(data=mean_haps_df_100x, aes(x=nInd, y=mean_haplos, group=nInd), 
+ggplot() + geom_boxplot(data=mean_haps_df, aes(x=nInd, y=mean_haplos, group=nInd), 
                         #outlier.shape = NA, 
                         outlier.size = 0.5, outlier.alpha = 0.2) +
   facet_grid(theta ~ nLoci,
