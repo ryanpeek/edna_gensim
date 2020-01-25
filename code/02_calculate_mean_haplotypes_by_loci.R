@@ -8,29 +8,27 @@ library(here)
 
 # Get Data ----------------------------------------------------------------
 
-# need to read in all the data and collapse:
+# get data dir
+simdir <- "sim002_data"
 
 # get filenames
-(filenames <- list.files(path = "data/simulations", pattern = ".out",full.names = TRUE))
-# using fs fs::dir_ls(path = "data/simulations/", regexp = "\\.out")
+(filenames <- list.files(path = paste0("data/",simdir), pattern = ".out",full.names = F))
+
+# using fs fs::dir_ls(path = paste0("data/",simdir, "/"), regexp = "\\.out")
 
 # do some tidying
 files_df <- filenames %>% tibble::enframe(name = "fileno", value = "filename") %>%
   separate(col = filename, 
-           into = c("run","nInd","nLoci", "theta","coverage", "reps"), 
+           into = c("run","nInd","nLoci", "theta",
+                    "coverage", "error", "hapThresh", "reps"), 
            sep = "_", remove = F) %>%
-  select(-fileno, -run, -reps) %>% 
+  select(-fileno, -run, -reps, -hapThresh, -error) %>% 
   mutate(theta = as.numeric(gsub(x=theta, pattern = "^t", replacement = "")),
          nInd = as.numeric(nInd),
          nLoci = as.numeric(nLoci),
          coverage = as.factor(coverage),
-         sampleID = glue::glue("{nInd}_{nLoci}_{theta}_{coverage}")) %>% ## need to add coverage in now
-  # arrange by 
+         sampleID = glue::glue("{nInd}_{nLoci}_{theta}_{coverage}")) %>% 
   arrange(nLoci, theta, nInd)
-
-# can check against the original run list, should be 600 runs
-# ms_params <- read_delim(file = "data/ms_params_50inds_2020_01_22.txt", delim = " ", 
-#                         col_names = c("nInd", "nLoci", "ll", "coverage")) 
 
 # Read Multiple Files with Purrr ------------------------------------------
 
@@ -44,10 +42,11 @@ library(furrr) # use furrr and work in parallel
 tic()
 dataAll <- files_df %>% 
   #slice(1:100) %>% 
-  mutate(dat = furrr::future_imap(filename, ~read_tsv(.x, col_names = FALSE), .progress = TRUE))
+  mutate(dat = furrr::future_imap(paste0("data/", simdir,"/",filename),
+                                  ~read_tsv(.x, col_names = FALSE),
+                                  .progress = TRUE))
 toc()
 
-# 70.242 sec elapsed
 
 ### try without parallel
 # this is normal method (>2x slower than furrr)
@@ -120,11 +119,13 @@ thetaNames <- c(`0.1`="theta==0.1 (100)",
                 `1`="theta==1  (1000)",
                 `10`="theta==10  (10000)")
 
+# make the plots
 ggplot() + geom_boxplot(data=mean_haps_df_100x, aes(x=nInd, y=mean_haplos, group=nInd), 
                         #outlier.shape = NA, 
                         outlier.size = 0.5, outlier.alpha = 0.2) +
-  facet_grid(theta ~ nLoci, labeller= labeller(nLoci = as_labeller(lociNames),
-                                               theta = as_labeller(thetaNames, label_parsed))) +
+  facet_grid(theta ~ nLoci,
+             labeller= labeller(nLoci = as_labeller(lociNames), 
+                                theta = as_labeller(thetaNames, label_parsed))) +
   theme_bw(base_family = "Roboto Condensed") +
   scale_x_continuous(minor_breaks = seq(0,50,2))+
   scale_y_continuous(breaks=seq(0,18,2))+
@@ -132,22 +133,18 @@ ggplot() + geom_boxplot(data=mean_haps_df_100x, aes(x=nInd, y=mean_haplos, group
        title="Simulations of Mean Haplotypes at 100x Coverage",
        caption="based on 1000 replicate simulations for each \n parameter combination, performed in the program *ms*")
 
-ggsave("figs/ms_mean_haplotypes_100x_50nInd.png", width = 11, height = 8.5, units = "in", dpi=300)
-ggsave("figs/ms_mean_haplotypes_100x_50nInd.pdf", device = cairo_pdf,
+ggsave("figs/ms_mean_haplotypes_100x_50nInd_w_0.1_error.png", width = 11, height = 8.5, units = "in", dpi=300)
+ggsave("figs/ms_mean_haplotypes_100x_50nInd_w_0.1_error.pdf", device = cairo_pdf,
        width = 11, height = 8.5, units = "in", dpi=300)  
 
 
 # Save Data ---------------------------------------------------------------
 
-dataAll2 <- dataAll[1,] %>% tidyr::pivot_wider(dat)
+#dataAll2 <- dataAll[1,] %>% tidyr::pivot_wider(dat)
 
-library(feather)
-feather::write_feather(dataAll, path = "data/dataAll_10x_100x.feather")
-#vroom::vroom_write(dataAll, "data/tst.tsv.gz")
+save(dataAll, file = "data/sim002_err0.1_dataAll_for_10x_100x.rda")
 
-save(dataAll, file = "data/dataAll_for_10x_100x.rda")
-
-save(mean_haps_df, file= "data/mean_haps_df_10x_100x.rda")
+save(mean_haps_df, file= "data/sim002_err0.1_mean_haps_df_10x_100x.rda")
 
 
 # Read a Single File ------------------------------------------------------
