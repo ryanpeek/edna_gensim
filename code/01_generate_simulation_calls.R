@@ -55,7 +55,7 @@ sim002 <- list(
   nInd = c(1:50),
   nLoci = c(100, 1000),
   ll = c(100, 1000, 10000),
-  coverage=c(100)
+  coverage=c(10,100)
 )
 
 # make all combos
@@ -67,7 +67,7 @@ args <- args %>%
   mutate(local_runs = glue('sh ms_simulate_haplotypes.sh {nInd} {nLoci} {ll} {coverage}'))
 
 # make bash header for shell file
-cat('#!/bin/bash -l\n\n', file = "code/ms_sim002_sbatch.sh")
+cat('#!/bin/bash -l\n\n', file = "code/ms_sim002b_sbatch.sh")
 readr::write_lines(args$local_runs, path = "code/ms_sim002_sbatch.sh", append = T)
 
 # A SINGLE LIST OF JUST PARAMS --------------------------------------------
