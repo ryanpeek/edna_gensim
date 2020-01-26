@@ -9,10 +9,12 @@ library(here)
 # LOAD EXISTING DATA IF AVAIL. --------------------------------------------------------------
 
 load("data/sim001_mean_haps_df_10x_100x.rda") # mean_haps_df
+sim001_haps_df <- mean_haps_df
+load("data/sim002_err0.1_mean_haps_df_10x_100x.rda")
+sim002_haps_df <- mean_haps_df
+rm(mean_haps_df)
 
-#load("data/sim002_err0.1_mean_haps_df_10x_100x.rda")
-#sim002_haps_df <- mean_haps_df
-#rm(mean_haps_df)
+load("data/sim002_err0.1_dataAll_for_10x_100x.rda")
 
 # Get Data ----------------------------------------------------------------
 
@@ -20,9 +22,8 @@ load("data/sim001_mean_haps_df_10x_100x.rda") # mean_haps_df
 simdir <- "sim002_data"
 
 # get filenames
-(filenames <- list.files(path = paste0("data/",simdir), pattern = ".out",full.names = F))
-
-# using fs fs::dir_ls(path = paste0("data/",simdir, "/"), regexp = "\\.out")
+filenames <- list.files(path = paste0("data/",simdir), pattern = ".out",full.names = F)
+head(filenames)
 
 # do some tidying
 files_df <- filenames %>% tibble::enframe(name = "fileno", value = "filename") %>%
@@ -55,21 +56,13 @@ dataAll <- files_df %>%
                                   .progress = TRUE))
 toc()
 
-
-### try without parallel
-# this is normal method (>2x slower than furrr)
-# tic()
-# dataAll <- files_df %>% 
-#   slice(1:100) %>% 
-#   mutate(dat = map(filename, ~read_tsv(.x, col_names = FALSE)))
-# toc()
-
+# 97.729 sec elapsed
 
 # Calculate Mean Number of Haplotypes per Locus ---------------------------
 
 # make custom function to calculate and pivot
 meanHaplos_by_locus <- function(x) {
-  summarize_all(x, mean) %>% 
+  dplyr::summarize_all(x, mean) %>% 
     pivot_longer(cols=starts_with("X"), names_to="reps")
 }
 
@@ -87,7 +80,29 @@ mean_haps_df <- mean_haps %>%
 
 
 
+# Combine into single dataset ---------------------------------------------
+
+sim001_haps_df <- sim001_haps_df %>% 
+  mutate(modrun = "error=0")
+
+sim002_haps_df <- sim002_haps_df %>% 
+  mutate(modrun = "error=0.10")
+
+# combine
+sim_all <- bind_rows(sim001_haps_df, sim002_haps_df) %>% 
+  mutate("Model"=as.factor(glue::glue("{coverage}x {modrun}")))
+
+
 # MEAN NUMBER HAPLOTYPES: ALL ----------------------------------------------------------------
+
+sim_all2 <- sim_all %>% 
+  group_by(ID, Model, modrun) %>% 
+  summarize_at(.vars = vars(mean_haplos), 
+               .funs = c("hMax"=max, "hMin"=min, "hMean"=mean)) %>% 
+  separate(col = ID, into = c("nInd","nLoci", "theta","coverage"), sep = "_", remove = F) %>%
+  mutate_at(c("nInd","nLoci","theta"), as.numeric) %>% 
+  ungroup()
+  
 
 # make nice label names:
 lociNames <- c(`100`="No. Loci = 100",
@@ -95,21 +110,10 @@ lociNames <- c(`100`="No. Loci = 100",
 thetaNames <- c(`0.1`="theta==0.1 (100)",
                 `1`="theta==1  (1000)",
                 `10`="theta==10  (10000)")
-
 ggplot() + 
-  geom_boxplot(data=mean_haps_df %>% 
-                 filter(coverage=="10"), 
-               aes(x=nInd, y=mean_haplos, group=nInd, color=coverage),
-               #color="mediumpurple4",
-               outlier.shape = NA, # make points null
-               outlier.size = 0.5, outlier.alpha = 0.2) +
-  geom_boxplot(data=mean_haps_df %>% 
-                 filter(coverage=="100"), 
-               aes(x=nInd, y=mean_haplos, group=nInd, color=coverage),
-               #color="seagreen3",
-               outlier.shape = NA, # make points null
-               outlier.size = 0.5, outlier.alpha = 0.2) +
-  scale_color_viridis_d("Coverage")+
+  geom_pointrange(data=sim_all2, aes(x=nInd, y=hMean, ymax=hMax, ymin=hMin, group=nInd, color=modrun, shape=coverage), size=0.5) +
+  ggthemes::scale_color_colorblind("Model")+
+  scale_shape_discrete("Coverage")+
   facet_grid(theta ~ nLoci, 
              labeller= labeller(nLoci = as_labeller(lociNames), theta = as_labeller(thetaNames, label_parsed))) +
   theme_bw(base_family = "Roboto Condensed") +
@@ -119,8 +123,9 @@ ggplot() +
        title="Simulations of Mean Haplotypes for 10x & 100x Coverage",
        caption="based on 1000 replicate simulations for each \n parameter combination, performed in the program *ms*")
 
-ggsave("figs/ms_mean_haplotypes_10x100x_50nInd.png", width = 11, height = 8.5, units = "in", dpi=300)
-ggsave("figs/ms_mean_haplotypes_10x100x_50nInd.pdf", device = cairo_pdf,
+# SAVE OUT
+ggsave("figs/ms_mean_haplotypes_10x100x_50nInd_w_error.png", width = 11, height = 8.5, units = "in", dpi=300)
+ggsave("figs/ms_mean_haplotypes_10x100x_50nInd_w_error.pdf", device = cairo_pdf,
        width = 11, height = 8.5, units = "in", dpi=300)  
 
 
@@ -194,7 +199,6 @@ save(mean_haps_df, file= "data/sim002_err0.1_mean_haps_df_10x_100x.rda")
 
 
 # Read a Single File ------------------------------------------------------
-
 
 # dat <- read_tsv(file = files_df$filename[[8]], col_names = FALSE)
 # 
