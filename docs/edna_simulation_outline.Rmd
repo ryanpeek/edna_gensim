@@ -137,7 +137,7 @@ knitr::include_graphics(paste0(here::here(),"/figs/ms_mean_haplotypes_10x100x_50
    
 ### Testing between distributions
 
-  - What are distributions we can add/draw sampling probabilities for individuals? (super-shedders)
+  - What are distributions we can add/draw sampling probabilities for individuals? (super-shredders)
     - mix dna from different distributions
     - try different distributions (negBinomial, uniform, normal)
     - sequence with RAD, then compare empirical vs. predicted haplotypes
