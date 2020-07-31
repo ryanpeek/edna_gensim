@@ -112,13 +112,62 @@ knitr::include_graphics(paste0(here::here(),"/figs/ms_mean_haplotypes_100x_50nIn
 
 ### RESULTS: Sim002-10% error with threshold=2+
 
- 
+
+```{r bothX}
+
+knitr::include_graphics(paste0(here::here(),"/figs/ms_mean_haplotypes_10x100x_50nInd_w_error.png"))
+
+```
  
 ## Forthcoming Options
 
  - variation in DNA quantity among individuals
  - try other distribution properties (median, mode, min, max)
  - Empirical test, pool DNA & RAD, equal or not?
+
+
+### NEXT STEPS
+
+ - Illumina limited at about 500bp, but high output (depth, error rate low)
+ - Ultimately most important: high coverage, highly variable loci
+ - Assuming:
+    - equal amounts of DNA per individual (same prob that each indiv is sampled)
+    - equal shedding
+    - equally mixed in environment
+   
+### Testing between distributions
+
+  - What are distributions we can add/draw sampling probabilities for individuals? (super-shedders)
+    - mix dna from different distributions
+    - try different distributions (negBinomial, uniform, normal)
+    - sequence with RAD, then compare empirical vs. predicted haplotypes
+    - look at highest haplotype frequency as an additional metric
+
+## Experiments
+
+Want to start planning our stickleback experiments, and doing simulations for individuals. Need to see the low ends of the histogram Caren showed...to better inform our distributions (poisson, negative binomial)
+
+### Field Experiments
+ - if sampling same family or weird groups of families from experimental
+ - Local population of stickleback? (fry traps)
+  - put into aquarium for an hour at site with bubbler
+  - collect water, fin clip and return fish
+  - permits
+  - bucket with 20, 10, 5 fish
+  
+### PacBio
+
+ - 5kb reads in a small genome, could get really solid coverage
+
+### Need to Know
+
+Talk to Caren/student about the experiments they did...
+
+ - How much DNA do you get from the water?
+ - How much time were frogs in tanks?
+ - Need to know, how to go from gallons of water with fish to eDNA
+ 
+
 
 <!--
 ## ADDITIONAL RESOURCES 

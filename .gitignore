@@ -35,7 +35,16 @@ vignettes/*.pdf
 # Shiny token, see https://shiny.rstudio.com/articles/shinyapps.html
 rsconnect/
 
+# media
 *.m4a
 *.JPG
 *.html
 *.doc
+
+# large data files:
+data/sim001_dataAll_for_10x_100x.rda
+data/sim002_err0.1_dataAll_for_10x_100x.rda
+data/*.tgz
+
+# file
+.DS_Store

@@ -13,14 +13,18 @@ activate_ms(priority = 500)
 list_simulators()
 
 # check if model can be run
-model <- coal_model(sample_size = 10, loci_number = 50, 
-                    loci_length = 300, ploidy = 2) +
-  feat_mutation(rate = 5, model = "IFS") + # rate= 4*N*mu (mutation rate per locus)
-  feat_mutation(par_prior("theta", sample.int(100, 1))) +
-  sumstat_nucleotide_div()
+model <- coal_model(sample_size = 5, loci_number = 10, 
+                    loci_length = 100, ploidy = 2) +
+  feat_mutation(rate = .1, model = "IFS") + # rate= 4*N*mu (mutation rate per locus)
+  #feat_mutation(par_prior("theta", sample.int(100, 1))) +
+  sumstat_file(folder = "data/tst/")
+  #sumstat_nucleotide_div()
 check_model(model)
 model # see model
-stats <- simulate(model, seed = 15, nsim=100)
+stats <- simulate(model, seed = 15, nsim=10)
+
+## THIS WORKS FOR RAW DATA!
+
 
 # plot
 mean_pi <- map_dbl(stats, ~mean(.x$pi))
