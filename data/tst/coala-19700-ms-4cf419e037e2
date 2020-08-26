@@ -1,0 +1,80 @@
+ms 10 10 -t 0.1 
+//
+segsites: 1
+positions:    0.6040513485 
+0
+0
+1
+0
+1
+0
+0
+0
+1
+0
+
+//
+segsites: 0
+
+
+//
+segsites: 0
+
+
+//
+segsites: 0
+
+
+//
+segsites: 0
+
+
+//
+segsites: 0
+
+
+//
+segsites: 0
+
+
+//
+segsites: 1
+positions:    0.4924099932 
+0
+0
+0
+0
+1
+1
+1
+0
+0
+0
+
+//
+segsites: 1
+positions:    0.4019344882 
+0
+0
+0
+0
+1
+0
+0
+0
+1
+1
+
+//
+segsites: 1
+positions:    0.3935746674 
+0
+0
+0
+0
+0
+0
+0
+0
+0
+1
