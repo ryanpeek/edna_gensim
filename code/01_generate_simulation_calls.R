@@ -24,51 +24,86 @@ library(glue)
 
 # SIM 001 -----------------------------------------------------------------
 
+# this simulation has no error or haplotype requirements in the perl script.
+# requires perl script ms_sample.pl
+
 # now generate the actual call using purrr
 # need the following: nInd=$1, nLoci=$2, ll=$3, cov=$4
 
 # SIMULATION 001 (no error rate)
-sim001 <- list(
-  nInd = c(1:50),
-  nLoci = c(100, 1000),
-  ll = c(100, 1000, 10000),
-  coverage=c(10, 100)
-)
-
-# make all combos
-args <- sim001 %>% purrr::cross_df() %>% 
-  mutate(call_list=paste(nInd, nLoci, ll, coverage, sep = " "))
-
-# make the sh call with glue: "sh simulate_haplotypes.sh 1 100 100 10"
-args <- args %>% 
-  mutate(local_runs = glue('sh ms_simulate_haplotypes.sh {nInd} {nLoci} {ll} {coverage}'))
-
-# make bash header for shell file
-cat('#!/bin/bash -l\n\n', file = "code/ms_sim001_sbatch.sh")
-readr::write_lines(args$local_runs, path = "code/ms_sim001_sbatch.sh", append = T)
+# sim001 <- list(
+#   nInd = c(1:50),
+#   nLoci = c(100, 1000),
+#   ll = c(100, 1000, 10000),
+#   coverage=c(10, 100)
+# )
+# 
+# # make all combos
+# args <- sim001 %>% purrr::cross_df() %>% 
+#   mutate(call_list=paste(nInd, nLoci, ll, coverage, sep = " "))
+# 
+# # make the sh call with glue: "sh simulate_haplotypes.sh 1 100 100 10"
+# args <- args %>% 
+#   mutate(local_runs = glue('sh ms_simulate_haplotypes.sh {nInd} {nLoci} {ll} {coverage}'))
+# 
+# # make bash header for shell file
+# cat('#!/bin/bash -l\n\n', file = "code/ms_sim001_sbatch.sh")
+# readr::write_lines(args$local_runs, path = "code/ms_sim001_sbatch.sh", append = T)
 
 
 # SIM 002  -----------------------------------------------------------------
 
-# SIMULATION 002 (10% error, haplo=< 2 threshold)
-sim002 <- list(
-  nInd = c(1:50),
-  nLoci = c(100, 1000),
-  ll = c(100, 1000, 10000),
-  coverage=c(10,100)
+# this simulation adds sequencing error rate, and a haplotype threshold
+
+# # SIMULATION 002 (10% error, haplo=< 2 threshold)
+# sim002 <- list(
+#   nInd = c(1:50),
+#   nLoci = c(100, 1000),
+#   ll = c(100, 1000, 10000),
+#   coverage=c(10,100)
+# )
+# 
+# # make all combos
+# args <- sim002 %>% purrr::cross_df() %>% 
+#   mutate(call_list=paste(nInd, nLoci, ll, coverage, sep = " "))
+# 
+# # make the sh call with glue: "sh simulate_haplotypes.sh 1 100 100 10"
+# args <- args %>% 
+#   mutate(local_runs = glue('sh ms_simulate_haplotypes.sh {nInd} {nLoci} {ll} {coverage}'))
+# 
+# # make bash header for shell file
+# cat('#!/bin/bash -l\n\n', file = "code/ms_sim002b_sbatch.sh")
+# readr::write_lines(args$local_runs, path = "code/ms_sim002_sbatch.sh", append = T)
+
+# SIM 003  -----------------------------------------------------------------
+
+# this simulation adds distributions for each individual, to simulate different
+# eDNA shedding rates
+
+resultsDir <- "sim003"
+
+# SIMULATION 003 (10% error, haplo=< 2 threshold, distrib)
+sim003 <- list(
+  nInd = c(seq(1, 25, 3)),
+  #nLoci = c(100),
+  #ll = c(10000),
+  #coverage=c(100),
+  distrib=c("norm", "unif", "gamma", "beta")
+  #reps=c(100) # number of simulations/repetitions
 )
 
 # make all combos
-args <- sim002 %>% purrr::cross_df() %>% 
-  mutate(call_list=paste(nInd, nLoci, ll, coverage, sep = " "))
+args <- sim003 %>% purrr::cross_df() %>% 
+  mutate(call_list=paste(nInd, distrib, sep = " "))
 
-# make the sh call with glue: "sh simulate_haplotypes.sh 1 100 100 10"
+# make the sh call with glue: "sh code/ms_simulate_haplotypes_local.sh 9 norm sim004"
 args <- args %>% 
-  mutate(local_runs = glue('sh ms_simulate_haplotypes.sh {nInd} {nLoci} {ll} {coverage}'))
+  mutate(local_runs = glue('sh code/ms_simulate_haplotypes_local.sh {nInd} {distrib} {resultsDir}'))
 
 # make bash header for shell file
-cat('#!/bin/bash -l\n\n', file = "code/ms_sim002b_sbatch.sh")
-readr::write_lines(args$local_runs, path = "code/ms_sim002_sbatch.sh", append = T)
+cat('#!/bin/bash -l\n\n', file = "code/ms_sim003_sbatch.sh")
+readr::write_lines(args$local_runs, path = "code/ms_sim003_sbatch.sh", append = T)
+
 
 # A SINGLE LIST OF JUST PARAMS --------------------------------------------
 

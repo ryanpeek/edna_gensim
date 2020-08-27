@@ -32,55 +32,33 @@ load("data/sim_all_median.rda")
 
 # 01: GET RAW FILES LIST ----------------------------------------------------------
 
-
 # get data dir
-simdir <- "sim001_data"
+simdir <- "sim003"
 
 # get filenames
-filenames <- list.files(path = paste0("data/",simdir), pattern = ".out",full.names = F)
+filenames <- list.files(path = paste0("results/",simdir), pattern = ".out",full.names = F)
 head(filenames)
 
 # do some tidying
 files_df <- filenames %>% tibble::enframe(name = "fileno", value = "filename") %>%
   separate(col = filename, 
            into = c("run","nInd","nLoci", "theta",
-                    "coverage", "error", "hapThresh", "reps"), 
+                    "coverage", "error", "hapThresh",
+                    "distrib", "reps"), 
            sep = "_", remove = F) %>%
   select(-fileno, -run, -reps, -hapThresh, -error) %>% 
   mutate(theta = as.numeric(gsub(x=theta, pattern = "^t", replacement = "")),
          nInd = as.numeric(nInd),
          nLoci = as.numeric(nLoci),
          coverage = as.factor(coverage),
-         sampleID = glue::glue("{nInd}_{nLoci}_{theta}_{coverage}")) %>% 
-  arrange(nLoci, theta, coverage, nInd)
+         distrib = as.factor(distrib),
+         sampleID = glue::glue("{nInd}_{nLoci}_{theta}_{coverage}_{distrib}")) %>% 
+  arrange(nLoci, theta, coverage, nInd, distrib)
+
+#View(files_df)
 
 # save this out
-save(files_df, file = "data/sim001_files_list.rda")
-
-
-# get data dir
-simdir <- "sim002_data"
-
-# get filenames
-filenames <- list.files(path = paste0("data/",simdir), pattern = ".out",full.names = F)
-head(filenames)
-
-# do some tidying
-files_df <- filenames %>% tibble::enframe(name = "fileno", value = "filename") %>%
-  separate(col = filename, 
-           into = c("run","nInd","nLoci", "theta",
-                    "coverage", "error", "hapThresh", "reps"), 
-           sep = "_", remove = F) %>%
-  select(-fileno, -run, -reps, -hapThresh, -error) %>% 
-  mutate(theta = as.numeric(gsub(x=theta, pattern = "^t", replacement = "")),
-         nInd = as.numeric(nInd),
-         nLoci = as.numeric(nLoci),
-         coverage = as.factor(coverage),
-         sampleID = glue::glue("{nInd}_{nLoci}_{theta}_{coverage}")) %>% 
-  arrange(nLoci, theta, coverage, nInd)
-
-# save this out
-save(files_df, file = "data/sim002_files_list.rda")
+save(files_df, file = glue::glue("results/{simdir}/{simdir}_files_list.rda"))
 
 
 # 02: IMPORT FILES  ------------------------------------------
@@ -89,32 +67,19 @@ save(files_df, file = "data/sim002_files_list.rda")
 
 library(tictoc) # to time stuff
 library(furrr) # use furrr and work in parallel
-#plan(multiprocess) this does nothing
 
 # now run in parallel
-tic()
+#tic()
 dataAll <- files_df %>% 
   #slice(1:100) %>% 
-  mutate(dat = furrr::future_imap(paste0("data/", simdir,"/",filename),
+  mutate(dat = furrr::future_imap(paste0("results/", simdir,"/",filename),
                                   ~read_tsv(.x, col_names = FALSE),
                                   .progress = TRUE))
-toc()
+#toc()
 
 # 97.729 sec elapsed
 
 # 03: CALCULATE MEAN HAPLOTYPES per LOCUS -----------------
-
-# make custom function to calculate and pivot
-meanHaplos_by_locus <- function(x) {
-  dplyr::summarize_all(x, mean) %>% 
-    pivot_longer(cols=starts_with("X"), names_to="reps")
-}
-
-mediHaplos_by_locus <- function(x) {
-  dplyr::summarize_all(x, median) %>% 
-    pivot_longer(cols=starts_with("X"), names_to="reps")
-}
-
 
 # ** Calc SIM001 -----------------------------------------------
 
@@ -168,31 +133,87 @@ sim002_med_haps_df <- sim002_med_haps %>%
   mutate(coverage=as.factor(coverage)) %>% 
   mutate(reps = as.integer(gsub(reps, pattern = "^X",replacement = "")))
 
+
+# ** Calc SIM003 -----------------------------------------------
+
+# make custom function to aggregate and pivot
+f_agg_haps_by_locus <- function(x, stat) {
+  dplyr::summarize_all(x, stat) %>% 
+    pivot_longer(cols=starts_with("X"), names_to="reps")
+}
+
+# Function to make a dataframe and refactor
+f_haps_df <- function(statname, df){
+  df %>% 
+    separate(col = ID, into = c("nInd","nLoci", "theta","coverage", "distrib"), sep = "_", remove = F) %>%
+    rename(haplos=value) %>%
+    mutate(stat=statname) %>% 
+    mutate_at(c("nInd","nLoci","theta"), as.numeric) %>%
+    mutate_at(c("distrib", "coverage"), as.factor) %>%  
+    mutate(reps = as.integer(gsub(reps, pattern = "^X",replacement = "")))
+}
+
+# Calculate Mean number of Haplotypes per individual/params
+sim003_mean_haps <- map(dataAll$dat, ~meanHaplos_by_locus(.x)) %>% 
+  map2_df(., files_df$sampleID, ~mutate(.x, ID=.y))
+
+
+# apply function: MEAN
+sim003_mean_df <- f_haps_df("mean", sim003_mean_haps)
+
+# Calculate variance of Haplotypes per individual/params
+sim003_vari_haps <- map(dataAll$dat, ~varHaplos_by_locus(.x)) %>% 
+  map2_df(., files_df$sampleID, ~mutate(.x, ID=.y))
+
+# apply function: VAR
+sim003_vari_haps_df <- sim003_vari_haps %>% 
+  separate(col = ID, into = c("nInd","nLoci", "theta","coverage", "distrib"), sep = "_", remove = F) %>%
+  rename(haplos=value) %>%
+  mutate(stat="var") %>% 
+  mutate_at(c("nInd","nLoci","theta"), as.numeric) %>%
+  mutate(distrib=as.factor(distrib)) %>% 
+  mutate(coverage=as.factor(coverage)) %>% 
+  mutate(reps = as.integer(gsub(reps, pattern = "^X",replacement = "")))
+
+# Calculate Median number of Haplotypes per individual/params
+sim003_max_haps <- map(dataAll$dat, ~maxHaplos_by_locus(.x)) %>% 
+  map2_df(., files_df$sampleID, ~mutate(.x, ID=.y))
+
+# clean a bit and refactor
+sim003_max_haps_df <- sim003_max_haps %>% 
+  separate(col = ID, into = c("nInd","nLoci", "theta","coverage", "distrib"), sep = "_", remove = F) %>%
+  rename(no_haplos=value) %>% 
+  mutate(stat="max") %>% 
+  mutate_at(c("nInd","nLoci","theta"), as.numeric) %>%
+  mutate(distrib=as.factor(distrib)) %>% 
+  mutate(coverage=as.factor(coverage)) %>% 
+  mutate(reps = as.integer(gsub(reps, pattern = "^X",replacement = "")))
+
+
 # 04: COMBINE INTO SINGLE DATASET ------------------------------
 
 ## MEAN
-sim001_mean_haps_df <- sim001_mean_haps_df %>% 
-  mutate(modrun = "error=0")
-
-sim002_mean_haps_df <- sim002_mean_haps_df %>% 
+sim003_mean_haps_df <- sim003_mean_haps_df %>% 
   mutate(modrun = "error=0.10")
 
 ## MEDIAN
-sim001_med_haps_df <- sim001_med_haps_df %>% 
-  mutate(modrun = "error=0")
-
-sim002_med_haps_df <- sim002_med_haps_df %>% 
+sim003_medi_haps_df <- sim003_medi_haps_df %>% 
   mutate(modrun = "error=0.10")
 
-# COMBINE ALL: MEAN
-sim_all_mean <- bind_rows(sim001_mean_haps_df, sim002_mean_haps_df) %>% 
-  mutate("Model"=as.factor(glue::glue("{coverage}x {modrun}")))
-save(sim_all_mean, file = "data/sim_all_mean.rda")
+## MEDIAN
+sim003_medi_haps_df <- sim003_medi_haps_df %>% 
+  mutate(modrun = "error=0.10")
 
-# COMBINE ALL: MEDIAN
-sim_all_median <- bind_rows(sim001_med_haps_df, sim002_med_haps_df) %>% 
-  mutate("Model"=as.factor(glue::glue("{coverage}x {modrun}")))
-save(sim_all_median, file = "data/sim_all_median.rda")
+## MAX
+sim003_max_haps_df <- sim003_max_haps_df %>% 
+  mutate(modrun = "error=0.10")
+
+
+# COMBINE ALL: MEAN
+sim_all_mean <- bind_rows(sim003_mean_haps_df, sim003_max_haps_df, sim003_medi_haps_df) %>% 
+  mutate("Model"=as.factor(glue::glue("{coverage}x {modrun} {distrib}")))
+save(sim_all_mean, file = glue::glue("results/{simdir}/sim_all_mean.rda"))
+
 
 # 05: PLOTS ---------
 
@@ -200,7 +221,7 @@ save(sim_all_median, file = "data/sim_all_median.rda")
 
 sim_all_mean2 <- sim_all_mean %>% 
   group_by(ID, modrun) %>% 
-  summarize_at(.vars = vars(mean_haplos), 
+  summarize_at(.vars = vars(no_haplos), 
                .funs = c("hMax"=max, "hMin"=min, "hMean"=mean)) %>% 
   separate(col = ID, into = c("nInd","nLoci", "theta","coverage"), sep = "_", remove = F) %>%
   ungroup() %>% 
