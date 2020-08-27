@@ -39,7 +39,8 @@ sim_all_df2 <- sim_all_df %>%
 
 
 (gg1 <- ggplot() + 
-    geom_pointrange(data=sim_all_df2 %>% filter(stat!="var"), aes(x=nInd, y=h_mean, ymax=ci_up, ymin=ci_lo, color=stat, shape=distrib), size=1) +
+    geom_pointrange(data=sim_all_df2, #%>% filter(stat!="var"), 
+                    aes(x=nInd, y=h_mean, ymax=ci_up, ymin=ci_lo, color=stat, shape=distrib), size=1) +
     #geom_line(data=sim_all_df2 %>% filter(stat!="var"), 
     #          aes(x=nInd, y=h_mean, color=stat, group=stat), size=0.5, alpha=0.4) +
     ggthemes::scale_color_colorblind("Metric") +
@@ -51,11 +52,11 @@ sim_all_df2 <- sim_all_df %>%
          title="Simulations of Haplotypes for 100x Coverage",
          caption="based on 1000 replicate simulations for each \n parameter combination, performed in the program *ms*"))
 
-plotly::ggplotly(gg1)
+#plotly::ggplotly(gg1)
 
 # SAVE OUT
-ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
-ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_faceted.pdf"), 
+ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_points_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
+ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_points_faceted.pdf"), 
        device = cairo_pdf, width = 11, height = 8.5, units = "in", dpi=300)  
 
 
@@ -76,8 +77,8 @@ ggplot() +
        title="Simulations of Haplotypes at 100x Coverage",
        caption="based on 100 replicate simulations for each \n parameter combination, performed in the program *ms*")
 
-ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
-ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_faceted.pdf"), device = cairo_pdf, width = 11, height = 8.5, units = "in", dpi=300) 
+ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
+ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.pdf"), device = cairo_pdf, width = 11, height = 8.5, units = "in", dpi=300) 
 
 
 # Save Data ---------------------------------------------------------------
