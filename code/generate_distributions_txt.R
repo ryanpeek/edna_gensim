@@ -15,6 +15,7 @@ args <- commandArgs(trailingOnly = TRUE)
 N <- args[1]
 distrib <- args[2]
 resultsDir <- args[3]
+repX <- args[4]
 #print(args)
 
 Ngc <- as.integer(N)
@@ -24,22 +25,20 @@ distrib <- as.character(distrib)
 #N <- 10
 
 # number of samples to draw
-S <- 10000
+# S <- 10000
 
 # Generate Gaussian Distribution -----------------------------------
 
 if(distrib=="norm"){
-        x_norm <- rnorm(S, mean = 10, sd = 2) # gen distrib
-        x_norm_s <- sample(x_norm, Ngc) # take a sample
-        cat(paste(x_norm_s, collapse=","), file = glue::glue("results/{resultsDir}/dist_norm_ind{N}.txt"))
+        x_norm <- rnorm(Ngc, mean = 10, sd = 2) # gen distrib
+        cat(paste(x_norm, collapse=","), file = glue::glue("results/{resultsDir}/dist_norm_ind{N}_{repX}.txt"))
 }
 
 # Generate Uniform Distribution -------------------------------------------
 
 if(distrib=="unif"){
-        x_unif <- runif(S)
-        x_unif_s <- sample(x_unif, Ngc) # take a sample
-        cat(paste(x_unif_s, collapse=","), file = glue::glue("results/{resultsDir}/dist_unif_ind{N}.txt"))
+        x_unif <- runif(Ngc)
+        cat(paste(x_unif, collapse=","), file = glue::glue("results/{resultsDir}/dist_unif_ind{N}_{repX}.txt"))
 }
 
 # Generate Gamma Distrib (Left Skew) ---------------------------------------
@@ -50,9 +49,8 @@ if(distrib=="unif"){
 # 3. The average number of occurrences must remain the same from unit to unit.
 
 if(distrib=="gamma"){
-        x_gamma <- rgamma(S, shape = 2, rate = 0.5) # left skewed
-        x_gamma_s <- sample(x_gamma, Ngc) # take a sample
-        cat(paste(x_gamma_s, collapse=","), file = glue::glue("results/{resultsDir}/dist_gamma_ind{N}.txt"))
+        x_gamma <- rgamma(Ngc, shape = 2, rate = 0.5) # left skewed
+        cat(paste(x_gamma, collapse=","), file = glue::glue("results/{resultsDir}/dist_gamma_ind{N}_{repX}.txt"))
 }
         
 # Generate Beta Distrib (Left Skew) ---------------------------------------
@@ -62,9 +60,8 @@ if(distrib=="gamma"){
 # alpha (shape1) and beta (shape2): If the parameters are equal, the distribution is symmetrical. If either parameter is 1 and the other parameter is greater than 1, the distribution is J-shaped. If alpha is less than beta, the distribution is said to be positively skewed (most of the values are near the minimum value). If alpha is greater than beta, the distribution is negatively skewed (most of the values are near the maximum value).
 
 if(distrib=="beta"){
-        x_beta <- rbeta(S, shape1 = 2, shape2 = 10) # left skewed
-        x_beta_s <- sample(x_beta, Ngc) # take a sample
-        cat(paste(x_beta_s, collapse=","), file = glue::glue("results/{resultsDir}/dist_beta_ind{N}.txt"))
+        x_beta <- rbeta(Ngc, shape1 = 2, shape2 = 10) # left skewed
+        cat(paste(x_beta, collapse=","), file = glue::glue("results/{resultsDir}/dist_beta_ind{N}_{repX}.txt"))
 }
 
 # NOTES -------------------------------------------------------------------

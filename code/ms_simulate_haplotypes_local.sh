@@ -39,13 +39,6 @@ echo "Using gene copies=$gc"
 printf -v nInd "%03g" $nInd
 echo "\nGenerating distributions for $nInd individuals \n"
 
-# now call R script to generate distributions for sampling
-Rscript --vanilla code/generate_distributions_txt.R $nInd $distrib $resDir
-
-# for debugging:
-# Rscript code/generate_distributions_txt.R $nInd $distrib $resDir
-
-
 echo "Calculating theta...\n"
 
 # calculate theta
@@ -71,8 +64,11 @@ do
 	
 	# cluster
 	#ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${cov}_${x}.out
+	# now call R script to generate distributions for sampling
+  Rscript --vanilla code/generate_distributions_txt.R $nInd $distrib $resDir $repx
+
 	
-	perl code/ms_sample_2.pl results/ms_${nInd}_${nLoci}_${theta}_${cov}_${repx}.ms $cov $error $thresh results/${resDir}/dist_${distrib}_ind${nInd}.txt > results/${resDir}/sample_${nInd}_${nLoci}_${theta}_${cov}_${error}_${thresh}_${distrib}_${repx}.out
+	perl code/ms_sample_2.pl results/ms_${nInd}_${nLoci}_${theta}_${cov}_${repx}.ms $cov $error $thresh results/${resDir}/dist_${distrib}_ind${nInd}_${repx}.txt > results/${resDir}/sample_${nInd}_${nLoci}_${theta}_${cov}_${error}_${thresh}_${distrib}_${repx}.out
 	
 	x=$(( $x + 1 ))
 
@@ -82,10 +78,19 @@ echo "Simulations Done! Cleaning up..."
 
 paste results/${resDir}/sample_${nInd}_${nLoci}_${theta}_${cov}_${error}_${thresh}_${distrib}*.out > results/${resDir}/run_${nInd}_${nLoci}_t${theta}_${cov}_${error}_${thresh}_${distrib}_reps${reps}.out
 
+
+if [ ! -d "results/${resDir}/distribs" ]; then
+        mkdir results/${resDir}/distribs  ### All output goes here ###
+fi
+
+# move distributions files
+mv results/${resDir}/dist_*.txt results/${resDir}/distribs/
+
 # rm temp files
 echo "\tRemoving sample and ms out temp files \n"
 rm seedms
 rm results/ms_*.ms
+#rm results/${resDir}/dist*.txt
 rm results/${resDir}/sample_*.out
 
 echo "Done!!"
