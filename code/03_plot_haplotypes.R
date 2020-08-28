@@ -14,19 +14,34 @@ coverage <- 100
 
 # Read in Data ------------------------------------------------------------
 
-load(glue::glue("results/{simdir}/{simdir}_df_{coverage}x.rda"))
+# read in the by replicate
+load(glue::glue("results/{simdir}/{simdir}_rep_df_{coverage}x.rda"))
+
+# read in the by locus
+load(glue::glue("results/{simdir}/{simdir}_locus_df_{coverage}x.rda"))
 
 # Tidy Data For Plotting --------------------------------------------------
 
-sim_all_df2 <- sim_all_df %>% 
-  group_by(ID, stat) %>% 
+sim_loc_ci <- sim_loc_df %>%
+  group_by(sampleID, stat) %>%
   summarize("h_sd"= sd(haplos),
-            "CI"= list(mean_cl_normal(haplos) %>% rename(h_mean=y, ci_lo=ymin, ci_up=ymax))) %>% 
-  unnest(CI) %>% 
-  separate(col = ID, into = c("nInd","nLoci", "theta","coverage", "distrib"), sep = "_", remove = F) %>%
-  ungroup() %>% 
-  mutate_at(c("nInd","nLoci","theta"), as.numeric) %>% 
+            "CI"= list(mean_cl_normal(haplos) %>% rename(h_mean=y, ci_lo=ymin, ci_up=ymax))) %>%
+  unnest(CI) %>%
+  separate(col = sampleID, into = c("nInd","nLoci", "theta","coverage", "distrib"), sep = "_", remove = F) %>%
+  ungroup() %>%
+  mutate_at(c("nInd","nLoci","theta"), as.numeric) %>%
   mutate_at(c("distrib", "coverage"), as.factor)
+
+sim_rep_ci <- sim_rep_df %>%
+  group_by(sampleID, stat) %>%
+  summarize("h_sd"= sd(haplos),
+            "CI"= list(mean_cl_normal(haplos) %>% rename(h_mean=y, ci_lo=ymin, ci_up=ymax))) %>%
+  unnest(CI) %>%
+  separate(col = sampleID, into = c("nInd","nLoci", "theta","coverage", "distrib"), sep = "_", remove = F) %>%
+  ungroup() %>%
+  mutate_at(c("nInd","nLoci","theta"), as.numeric) %>%
+  mutate_at(c("distrib", "coverage"), as.factor)
+
 
 # GGPLOT DOTS -------------------------------------------------------------
 
@@ -39,17 +54,19 @@ sim_all_df2 <- sim_all_df %>%
 
 # PLOT
 (gg1 <- ggplot() + 
-    geom_pointrange(data=sim_all_df2, #%>% filter(stat!="var"), 
-                    aes(x=nInd, y=h_mean, ymax=ci_up, ymin=ci_lo, color=stat, shape=distrib), size=0.5) +
-    geom_line(data=sim_all_df2,aes(x=nInd, y=h_mean, color=stat, group=stat), size=0.5, alpha=0.4) +
-    ggthemes::scale_color_colorblind("Metric") +
-    facet_grid(~distrib) +
-    theme_bw(base_family = "Roboto Condensed") +
-    scale_x_continuous(minor_breaks = seq(0,50,2))+
-    scale_y_continuous(breaks=seq(0,18,2))+
-    labs(y="Number of Haplotypes", x="Number of Individuals",
-         title="Mean value for Metrics from Simulations of Haplotypes for 100x Coverage",
-         caption="based on 1000 replicate simulations for each \n parameter combination, performed in the program *ms*"))
+   geom_pointrange(data=sim_loc_ci, #%>% filter(stat!="var"), 
+                   aes(x=nInd, y=h_mean, ymax=ci_up, ymin=ci_lo, color=stat, shape=distrib), size=0.5) +
+   geom_line(data=sim_loc_ci,aes(x=nInd, y=h_mean, color=stat, group=stat), size=0.5, alpha=0.4) +
+   ggthemes::scale_color_colorblind("Metric") +
+   facet_grid(~distrib) +
+   theme_bw(base_family = "Roboto Condensed") +
+   #scale_x_continuous(minor_breaks = seq(0,50,2))+
+   #scale_y_continuous(breaks=seq(0,18,2))+
+   theme(
+     plot.caption = ggtext::element_markdown() ) +
+   labs(y="Number of Haplotypes", x="Number of Individuals",
+        title="Metrics by Loci from Simulations of Haplotypes for 100x Coverage",
+        caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i>, using base parameters: **\u0398=10**, **llength=10kb**, **loci=100**"))
 
 #plotly::ggplotly(gg1)
 
@@ -59,45 +76,66 @@ ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_points_faceted.pdf")
        device = cairo_pdf, width = 11, height = 8.5, units = "in", dpi=300)  
 
 
-# BOXPLOTS ----------------------------------------------------------------
+# NOTCHED BOXPLOTS ------------------------------------------------------------
+
+#notched box plot, the notches extend 1.58 * IQR / sqrt(n). This gives a roughly 95% confidence interval for comparing medians. See McGill et al. (1978) 
 
 ggplot() + 
-  geom_boxplot(data=sim_all_df %>% filter(stat=="max"), 
-               aes(x=nInd, y=haplos, group=nInd, fill=stat), 
+  geom_jitter(data=sim_loc_df %>% filter(stat=="max"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="max"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
                outlier.size = 0.5, outlier.alpha = 0.2) +
-  geom_boxplot(data=sim_all_df %>% filter(stat=="mean"), 
-               aes(x=nInd, y=haplos, group=nInd, fill=stat), 
+  geom_jitter(data=sim_loc_df %>% filter(stat=="mean"), 
+              aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="mean"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), notch=TRUE, 
                outlier.size = 0.5, outlier.alpha = 0.2) +
-  geom_boxplot(data=sim_all_df %>% filter(stat=="min"), 
-               aes(x=nInd, y=haplos, group=nInd, fill=stat), 
+  geom_jitter(data=sim_loc_df %>% filter(stat=="min"), 
+              aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="min"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
                outlier.size = 0.5, outlier.alpha = 0.2) +
   facet_grid(~distrib) +
   #             labeller= labeller(nLoci = as_labeller(lociNames), 
   #                                theta = as_labeller(thetaNames, label_parsed))) +
-  theme_bw(base_family = "Roboto Condensed") +
-  ggthemes::scale_color_colorblind("") +
+  theme_bw(base_family = "Roboto") +
+  ggthemes::scale_color_colorblind("Stat") +
   ggthemes::scale_fill_colorblind("Stat") +
   theme(
     plot.caption = ggtext::element_markdown()) +
   #scale_x_continuous(minor_breaks = seq(0,50,2)) +
   #scale_y_continuous(breaks=seq(0,18,2)) +
-  #guides(fill=FALSE)+
+  guides(color=FALSE)+
   labs(y="Number of Haplotypes", x="Number of Individuals",
-       title="Simulations of Haplotypes at 100x Coverage",
-       caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program *ms*, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
+       title="By Loci: Simulations of Haplotypes at 100x Coverage",
+       caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i>, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
 
 # save
 ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
 ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.pdf"), device = cairo_pdf, width = 11, height = 8.5, units = "in", dpi=300) 
 
 
-# Save Data ---------------------------------------------------------------
-
-#dataAll2 <- dataAll[1,] %>% tidyr::pivot_wider(dat)
-
-save(dataAll, file = "data/sim002_err0.1_dataAll_for_10x_100x.rda")
-
-save(mean_haps_df, file= "data/sim002_err0.1_mean_haps_df_10x_100x.rda")
+# Notched Box of Variance -------------------------------------------------
 
 
+ggplot() + 
+  geom_jitter(data=sim_loc_df %>% filter(stat=="var"), 
+              aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.4) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="var"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
+               outlier.size = 0.5, outlier.alpha = 0.2) +
+  facet_grid(~distrib) +
+  theme_bw(base_family = "Roboto") +
+  scale_color_manual("Stat", values = "seagreen") +
+  scale_fill_manual("Stat", values = "seagreen") +
+  theme(plot.caption = ggtext::element_markdown()) +
+  scale_y_continuous(breaks=seq(0,30,3)) +
+  guides(color=FALSE) +
+  labs(y="Haplotype Variance", x="Number of Individuals",
+       title="By Loci: Simulations of Haplotypes at 100x Coverage",
+       caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program *ms*, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
 
+# save
+ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_variance.png"), width = 11, height = 8.5, units = "in", dpi=300)
+ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_variance.pdf"), device = cairo_pdf, width = 11, height = 8.5, units = "in", dpi=300) 
