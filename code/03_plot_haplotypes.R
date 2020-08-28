@@ -3,7 +3,7 @@
 # Libraries ---------------------------------------------------------------
 
 library(tidyverse)
-#library(tidylog)
+library(ggtext)
 library(here)
 
 # get data dir
@@ -37,19 +37,18 @@ sim_all_df2 <- sim_all_df %>%
 #                 `1`="theta==1  (1000)",
 #                 `10`="theta==10  (10000)")
 
-
+# PLOT
 (gg1 <- ggplot() + 
     geom_pointrange(data=sim_all_df2, #%>% filter(stat!="var"), 
-                    aes(x=nInd, y=h_mean, ymax=ci_up, ymin=ci_lo, color=stat, shape=distrib), size=1) +
-    #geom_line(data=sim_all_df2 %>% filter(stat!="var"), 
-    #          aes(x=nInd, y=h_mean, color=stat, group=stat), size=0.5, alpha=0.4) +
+                    aes(x=nInd, y=h_mean, ymax=ci_up, ymin=ci_lo, color=stat, shape=distrib), size=0.5) +
+    geom_line(data=sim_all_df2,aes(x=nInd, y=h_mean, color=stat, group=stat), size=0.5, alpha=0.4) +
     ggthemes::scale_color_colorblind("Metric") +
-    facet_grid(distrib ~ .) +
+    facet_grid(~distrib) +
     theme_bw(base_family = "Roboto Condensed") +
     scale_x_continuous(minor_breaks = seq(0,50,2))+
     scale_y_continuous(breaks=seq(0,18,2))+
     labs(y="Number of Haplotypes", x="Number of Individuals",
-         title="Simulations of Haplotypes for 100x Coverage",
+         title="Mean value for Metrics from Simulations of Haplotypes for 100x Coverage",
          caption="based on 1000 replicate simulations for each \n parameter combination, performed in the program *ms*"))
 
 #plotly::ggplotly(gg1)
@@ -63,20 +62,31 @@ ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_points_faceted.pdf")
 # BOXPLOTS ----------------------------------------------------------------
 
 ggplot() + 
-  geom_boxplot(data=sim_all_df, #%>% filter(stat!="var"), 
-               aes(x=nInd, y=haplos, group=nInd, color=stat), outlier.size = 0.5, outlier.alpha = 0.2) +
-  facet_grid(distrib~stat) +
+  geom_boxplot(data=sim_all_df %>% filter(stat=="max"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), 
+               outlier.size = 0.5, outlier.alpha = 0.2) +
+  geom_boxplot(data=sim_all_df %>% filter(stat=="mean"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), 
+               outlier.size = 0.5, outlier.alpha = 0.2) +
+  geom_boxplot(data=sim_all_df %>% filter(stat=="min"), 
+               aes(x=nInd, y=haplos, group=nInd, fill=stat), 
+               outlier.size = 0.5, outlier.alpha = 0.2) +
+  facet_grid(~distrib) +
   #             labeller= labeller(nLoci = as_labeller(lociNames), 
   #                                theta = as_labeller(thetaNames, label_parsed))) +
   theme_bw(base_family = "Roboto Condensed") +
-  ggthemes::scale_color_colorblind("Metric") +
-  scale_x_continuous(minor_breaks = seq(0,50,2)) +
-  scale_y_continuous(breaks=seq(0,18,2)) +
-  guides(fill=FALSE)+
+  ggthemes::scale_color_colorblind("") +
+  ggthemes::scale_fill_colorblind("Stat") +
+  theme(
+    plot.caption = ggtext::element_markdown()) +
+  #scale_x_continuous(minor_breaks = seq(0,50,2)) +
+  #scale_y_continuous(breaks=seq(0,18,2)) +
+  #guides(fill=FALSE)+
   labs(y="Number of Haplotypes", x="Number of Individuals",
        title="Simulations of Haplotypes at 100x Coverage",
-       caption="based on 100 replicate simulations for each \n parameter combination, performed in the program *ms*")
+       caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program *ms*, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
 
+# save
 ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
 ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.pdf"), device = cairo_pdf, width = 11, height = 8.5, units = "in", dpi=300) 
 

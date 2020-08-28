@@ -84,7 +84,7 @@ resultsDir <- "sim003"
 
 # SIMULATION 003 (10% error, haplo=< 2 threshold, distrib)
 sim003 <- list(
-  nInd = c(seq(1, 25, 3)),
+  nInd = c(1:25),
   #nLoci = c(100),
   #ll = c(10000),
   #coverage=c(100),
@@ -98,11 +98,14 @@ args <- sim003 %>% purrr::cross_df() %>%
 
 # make the sh call with glue: "sh code/ms_simulate_haplotypes_local.sh 9 norm sim004"
 args <- args %>% 
-  mutate(local_runs = glue('sh code/ms_simulate_haplotypes_local.sh {nInd} {distrib} {resultsDir}'))
+  mutate(local_runs = glue('sh ms_simulate_haplotypes_v3.sh {nInd} {distrib} {resultsDir}'))
+
+# preview
+head(args$local_runs)
 
 # make bash header for shell file
 cat('#!/bin/bash -l\n\n', file = "code/ms_sim003_sbatch.sh")
-readr::write_lines(args$local_runs, path = "code/ms_sim003_sbatch.sh", append = T)
+readr::write_lines(args$local_runs, path = "code/sim003_sbatch.sh", append = T)
 
 
 # A SINGLE LIST OF JUST PARAMS --------------------------------------------

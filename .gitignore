@@ -46,5 +46,7 @@ data/sim001_dataAll_for_10x_100x.rda
 data/sim002_err0.1_dataAll_for_10x_100x.rda
 data/*.tgz
 
+results/*
+
 # file
 .DS_Store
