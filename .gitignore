@@ -48,5 +48,7 @@ data/*.tgz
 
 /results/*
 
+seedms
+
 # file
 .DS_Store
