@@ -41,6 +41,13 @@ if(distrib=="unif"){
         cat(paste(x_unif, collapse=","), file = glue::glue("results/{resultsDir}/dist_unif_ind{N}_{repX}.txt"))
 }
 
+# Generate Equal Distribution -------------------------------------------
+
+if(distrib=="equal"){
+        x_equal <- rep(1, Ngc)
+        cat(paste(x_equal, collapse=","), file = glue::glue("results/{resultsDir}/dist_equal_ind{N}_{repX}.txt"))
+}
+
 # Generate Gamma Distrib (Left Skew) ---------------------------------------
 
 # Most commonly used as the distribution of the amount of time until the rth occurrence of an event in a Poisson process. If so, the following apply:
@@ -52,7 +59,16 @@ if(distrib=="gamma"){
         x_gamma <- rgamma(Ngc, shape = 2, rate = 0.5) # left skewed
         cat(paste(x_gamma, collapse=","), file = glue::glue("results/{resultsDir}/dist_gamma_ind{N}_{repX}.txt"))
 }
-        
+
+# Generate Extreme Gamma Distrib (Left Skew) ------------------------------
+
+# Extreme left skew largely peaked around 0-1
+
+if(distrib=="gammaX"){
+        x_gammaX <- rgamma(Ngc, shape = 0.1, rate = 0.1) # left skewed
+        cat(paste(x_gammaX, collapse=","), file = glue::glue("results/{resultsDir}/dist_gammaX_ind{N}_{repX}.txt"))
+}
+
 # Generate Beta Distrib (Left Skew) ---------------------------------------
 
 # beta distribution is the conjugate prior probability distribution for the Bernoulli, binomial, negative binomial and geometric distributions. The beta distribution is a suitable model for the random behavior of percentages and proportions.
@@ -62,6 +78,14 @@ if(distrib=="gamma"){
 if(distrib=="beta"){
         x_beta <- rbeta(Ngc, shape1 = 2, shape2 = 10) # left skewed
         cat(paste(x_beta, collapse=","), file = glue::glue("results/{resultsDir}/dist_beta_ind{N}_{repX}.txt"))
+}
+
+
+# Generate U-shaped Beta Distrib ---------------------------------------
+
+if(distrib=="betaU"){
+        x_betaU <- rbeta(Ngc, shape1 = 0.1, shape2 = 0.1) # left skewed
+        cat(paste(x_betaU, collapse=","), file = glue::glue("results/{resultsDir}/dist_betaU_ind{N}_{repX}.txt"))
 }
 
 # NOTES -------------------------------------------------------------------

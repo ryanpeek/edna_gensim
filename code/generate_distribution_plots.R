@@ -37,6 +37,14 @@ plot(density(x_unif), lwd=2) # look at shape
 hist(x_unif)
 hist(rep(x_unif_s, 250), col="orange", add=T)
 
+
+
+# Generate Xtreme Gamma ---------------------------------------------------
+
+x_gammaX <- rgamma(S, shape = 0.1, rate = 0.1) # left skewed
+plot(density(x_gammaX), lwd=2) # look at shape
+hist(x_gammaX, breaks=250, col="orange")
+
 # Generate Gamm Distrib (Left Skew) ---------------------------------------
 
 # Most commonly used as the distribution of the amount of time until the rth occurrence of an event in a Poisson process. If so, the following apply:
@@ -45,13 +53,13 @@ hist(rep(x_unif_s, 250), col="orange", add=T)
 # 3. The average number of occurrences must remain the same from unit to unit.
 
 x_gamma <- rgamma(S, shape = 2, rate = 0.5) # left skewed
-x_gamma_s <- sample(x_gamma, N) # take a sample
-cat(paste(x_gamma_s, collapse=","), file = glue::glue("data/dist_gamma_ind{N}.txt"))
+#x_gamma_s <- sample(x_gamma, N) # take a sample
+#cat(paste(x_gamma_s, collapse=","), file = glue::glue("data/dist_gamma_ind{N}.txt"))
 
 #visualize
 summary(x_gamma)
 hist(x_gamma, breaks = 100)
-hist(rep(x_gamma_s, 250), col="orange", add=T)
+#hist(rep(x_gamma_s, 250), col="orange", add=T)
 
 # Generate Beta Distrib (Left Skew) ---------------------------------------
 
@@ -60,7 +68,7 @@ hist(rep(x_gamma_s, 250), col="orange", add=T)
 # alpha (shape1) and beta (shape2): If the parameters are equal, the distribution is symmetrical. If either parameter is 1 and the other parameter is greater than 1, the distribution is J-shaped. If alpha is less than beta, the distribution is said to be positively skewed (most of the values are near the minimum value). If alpha is greater than beta, the distribution is negatively skewed (most of the values are near the maximum value).
 
 x_beta <- rbeta(S, shape1 = 2, shape2 = 10) # left skewed
-x_beta_s <- sample(x_beta, N) # take a sample
+# x_beta_s <- sample(x_beta, N) # take a sample
 # x_beta <- rbeta(S, shape1 = 2, shape2 = 2) # normal without tails
 # x_beta <- rbeta(S, shape1 = .5, shape2 = .5) # U shaped
 
@@ -69,7 +77,14 @@ x_beta_s <- sample(x_beta, N) # take a sample
 
 #visualize
 plot(density(x_beta), lwd=2) # look at shape
-hist(x_beta, breaks = 100, col="orange")
+hist(x_beta, breaks = 100, col="orange", xlim=c(0,1))
+
+
+# Generate betaU ----------------------------------------------------------
+
+x_betaU <- rbeta(S, shape1 = 0.1, shape2 = 0.1) # U shaped
+hist(x_betaU, breaks=250, col="darkgreen", add=T)  
+
 
 # Alternate Plotting Methods ----------------------------------------------
 
@@ -94,7 +109,9 @@ dfh_norm <- data.frame(x=x_norm, dist="norm")
 dfh_unif <- data.frame(x=x_unif, dist="unif")
 dfh_gamm <- data.frame(x=x_gamma, dist="gamma")
 dfh_beta <- data.frame(x=x_beta, dist="beta")
-df_hist <- bind_rows(dfh_norm, dfh_gamm, dfh_unif, dfh_beta)
+dfh_betaU <- data.frame(x=x_betaU, dist="betaU")
+dfh_gammX <- data.frame(x=x_gammaX, dist="gammaX")
+df_hist <- bind_rows(dfh_norm, dfh_gamm, dfh_unif, dfh_beta, dfh_betaU, dfh_gammX)
 dim(df_hist)
  
 # PLOTS
@@ -104,23 +121,24 @@ library(cowplot)
  
 # faceted for gamma/norm
 dist1 <- ggplot() +
-  geom_histogram(data = df_hist %>% filter(dist %in% c("gamma", "norm")),
+  geom_histogram(data = df_hist %>% filter(dist %in% c("gamma", "gammaX")),
                  aes(x = x, fill=dist), binwidth = .5, show.legend = FALSE) +
   scale_fill_manual("Distrib", values = c(viridis(4)[1], viridis(4)[2])) +
   facet_wrap(vars(dist), scales = "free_x") + theme_bw()
+dist1
  
 # faceted for unif/beta
 dist2 <- ggplot() +
-  geom_histogram(data = df_hist %>% filter(dist %in% c("unif", "beta")),
+  geom_histogram(data = df_hist %>% filter(dist %in% c("beta", "betaU")),
                  aes(x = x, fill=dist),
                  binwidth = .01, show.legend = FALSE) +
   scale_fill_manual("Distrib.", values = c(viridis(4)[3], viridis(4)[4])) +
   facet_wrap(vars(dist), scales = "free_x") + theme_bw()
  
 # merge
-pAll <- plot_grid(dist1, dist2, nrow=2)
+(pAll <- plot_grid(dist1, dist2, nrow=2))
  
-ggsave(pAll, filename = "figs/distributions_faceted.png", width = 8, height = 7, units = "in", dpi = 300)
+ggsave(pAll, filename = "figs/distributions_beta_gamma_faceted.png", width = 8, height = 7, units = "in", dpi = 300)
 
 # NOTES -------------------------------------------------------------------
 

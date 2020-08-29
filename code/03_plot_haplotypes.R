@@ -54,9 +54,10 @@ sim_rep_ci <- sim_rep_df %>%
 
 # PLOT
 (gg1 <- ggplot() + 
-   geom_pointrange(data=sim_loc_ci, #%>% filter(stat!="var"), 
+   geom_pointrange(data=sim_loc_ci %>% filter(distrib!="unif", stat!="var"), 
                    aes(x=nInd, y=h_mean, ymax=ci_up, ymin=ci_lo, color=stat, shape=distrib), size=0.5) +
-   geom_line(data=sim_loc_ci,aes(x=nInd, y=h_mean, color=stat, group=stat), size=0.5, alpha=0.4) +
+   geom_line(data=sim_loc_ci %>% filter(distrib!="unif", stat!="var"), 
+             aes(x=nInd, y=h_mean, color=stat, group=stat), size=0.5, alpha=0.4) +
    ggthemes::scale_color_colorblind("Metric") +
    facet_grid(~distrib) +
    theme_bw(base_family = "Roboto Condensed") +
@@ -81,19 +82,19 @@ ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_points_faceted.pdf")
 #notched box plot, the notches extend 1.58 * IQR / sqrt(n). This gives a roughly 95% confidence interval for comparing medians. See McGill et al. (1978) 
 
 ggplot() + 
-  geom_jitter(data=sim_loc_df %>% filter(stat=="max"), 
-               aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
-  geom_boxplot(data=sim_loc_df %>% filter(stat=="max"), 
+  #geom_jitter(data=sim_loc_df %>% filter(stat=="max"), 
+  #             aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="max"), #width=1.5,
                aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
                outlier.size = 0.5, outlier.alpha = 0.2) +
-  geom_jitter(data=sim_loc_df %>% filter(stat=="mean"), 
-              aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
-  geom_boxplot(data=sim_loc_df %>% filter(stat=="mean"), 
+  #geom_jitter(data=sim_loc_df %>% filter(stat=="mean"), 
+  #            aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="mean"), #width=1.5,
                aes(x=nInd, y=haplos, group=nInd, fill=stat), notch=TRUE, 
                outlier.size = 0.5, outlier.alpha = 0.2) +
-  geom_jitter(data=sim_loc_df %>% filter(stat=="min"), 
-              aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
-  geom_boxplot(data=sim_loc_df %>% filter(stat=="min"), 
+  #geom_jitter(data=sim_loc_df %>% filter(stat=="min"), 
+  #            aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="min"), #width=1.5,
                aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
                outlier.size = 0.5, outlier.alpha = 0.2) +
   facet_grid(~distrib) +
@@ -120,9 +121,9 @@ ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.pdf"
 
 
 ggplot() + 
-  geom_jitter(data=sim_loc_df %>% filter(stat=="var"), 
-              aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.4) +
-  geom_boxplot(data=sim_loc_df %>% filter(stat=="var"), 
+  # geom_jitter(data=sim_loc_df %>% filter(stat=="var"), 
+  #             aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.4) +
+  geom_boxplot(data=sim_loc_df %>% filter(stat=="var"), width=1.8,
                aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
                outlier.size = 0.5, outlier.alpha = 0.2) +
   facet_grid(~distrib) +
@@ -130,7 +131,7 @@ ggplot() +
   scale_color_manual("Stat", values = "seagreen") +
   scale_fill_manual("Stat", values = "seagreen") +
   theme(plot.caption = ggtext::element_markdown()) +
-  scale_y_continuous(breaks=seq(0,30,3)) +
+  #scale_y_continuous(breaks=seq(0,30,3)) +
   guides(color=FALSE) +
   labs(y="Haplotype Variance", x="Number of Individuals",
        title="By Loci: Simulations of Haplotypes at 100x Coverage",

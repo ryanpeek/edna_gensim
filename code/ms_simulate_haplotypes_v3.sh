@@ -4,7 +4,7 @@ nInd=$1 # number of individuals in a sample
 nLoci=100 # $2 number of loci analysed
 ll=10000 # $3 # locus length
 cov=100 #$4 # mean coverage per locus analyzed (100x)
-distrib=$2 # one of "beta", "gamma", "norm", "unif"
+distrib=$2 # one of "beta", "gamma", "norm", "unif", "equal", "betaU", "gammaX"
 reps=100 #number of simulations to run (had set to 1000)
 resDir=$3 # results dir to create
 

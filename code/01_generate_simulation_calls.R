@@ -88,7 +88,8 @@ sim003 <- list(
   #nLoci = c(100),
   #ll = c(10000),
   #coverage=c(100),
-  distrib=c("norm", "unif", "gamma", "beta")
+  #distrib=c("norm", "unif", "gamma", "beta", "betaU", "gammaX", "equal"),
+  distrib=c("betaU", "gammaX", "equal")
   #reps=c(100) # number of simulations/repetitions
 )
 
