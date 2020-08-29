@@ -4,10 +4,10 @@
 
 library(tidyverse)
 library(ggtext)
-library(here)
+#library(here)
 
 # get data dir
-simdir <- "sim003"
+simdir <- "sim003b"
 #distribution <- "norm"
 coverage <- 100
 
@@ -67,7 +67,7 @@ sim_rep_ci <- sim_rep_df %>%
      plot.caption = ggtext::element_markdown() ) +
    labs(y="Number of Haplotypes", x="Number of Individuals",
         title="Metrics by Loci from Simulations of Haplotypes for 100x Coverage",
-        caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i>, using base parameters: **\u0398=10**, **llength=10kb**, **loci=100**"))
+        caption="Based on 1000 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i>, using base parameters: **\u0398=10**, **llength=10kb**, **loci=100**"))
 
 #plotly::ggplotly(gg1)
 
@@ -110,7 +110,7 @@ ggplot() +
   guides(color=FALSE)+
   labs(y="Number of Haplotypes", x="Number of Individuals",
        title="By Loci: Simulations of Haplotypes at 100x Coverage",
-       caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i>, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
+       caption="Based on 1000 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i>, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
 
 # save
 ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
@@ -135,7 +135,7 @@ ggplot() +
   guides(color=FALSE) +
   labs(y="Haplotype Variance", x="Number of Individuals",
        title="By Loci: Simulations of Haplotypes at 100x Coverage",
-       caption="Based on 100 replicate simulations for each parameter combination,<br>performed in the program *ms*, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
+       caption="Based on 1000 replicate simulations for each parameter combination,<br>performed in the program *ms*, using base parameters: **\u0398=10**, **loci-length=10kb**, **100 loci**")
 
 # save
 ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_variance.png"), width = 11, height = 8.5, units = "in", dpi=300)

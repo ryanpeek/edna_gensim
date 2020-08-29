@@ -4,12 +4,12 @@
 
 library(tidyverse)
 #library(tidylog)
-library(here)
+#library(here)
 
 # 01: GET RAW FILES LIST ----------------------------------------------------------
 
 # get data dir
-simdir <- "sim003"
+simdir <- "sim003a"
 #distribution <- "norm"
 coverage <- 100
 
@@ -42,17 +42,17 @@ save(files_df, file = glue::glue("results/{simdir}/{simdir}_files_list_{coverage
 # 02: IMPORT FILES  ------------------------------------------
 
 # reads all in at once, keeps data as list col
-library(tictoc) # to time stuff
+#library(tictoc) # to time stuff
 library(furrr) # use furrr and work in parallel
 
 # now run in parallel
-tic()
+#tic()
 dataAll <- files_df %>% 
   #slice(1:100) %>% 
   mutate(dat = furrr::future_imap(glue::glue("results/{simdir}/{filename}"),
                                   ~read_tsv(.x, col_names = FALSE),
                                   .progress = TRUE))
-toc()
+#toc()
 
 # 03: CALCULATE HAPLOTYPES  -------------------------------------
 

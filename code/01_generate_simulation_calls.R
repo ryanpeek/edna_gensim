@@ -4,24 +4,6 @@ library(purrr)
 # options(scipen = 999)
 library(glue)
 
-# Simple ms call ----------------------------------------------------------
-
-# nInd <- seq(1:50)
-# nLoci <- 100 # mean number of loci analyzed (100 or 1000)
-# ploidy <- 2 # diploid individuals
-# gc <- nInd * ploidy # gene copies (for ms)
-# mu <- 1e-8 # mutation rate
-# Ne <- 25000 # coalescent effect pop size
-# ll <- 100 # loci length (100, 1000, 10000)
-# theta <- 4*Ne*ll*mu # scaled mutation rate
-
-# coverage <- 10 # mean coverage per locus analyzed (10, 100)
-
-# generate single combo list
-# call <- paste(nInd, nLoci, ll, coverage, sep = ",")
-# call # double check
-
-
 # SIM 001 -----------------------------------------------------------------
 
 # this simulation has no error or haplotype requirements in the perl script.
@@ -88,8 +70,8 @@ sim003 <- list(
   #nLoci = c(100),
   #ll = c(10000),
   #coverage=c(100),
-  #distrib=c("norm", "unif", "gamma", "beta", "betaU", "gammaX", "equal"),
-  distrib=c("betaU", "gammaX", "equal")
+  distrib=c("norm", "unif", "gamma", "beta", "betaU", "gammaX", "equal")
+  #distrib=c("betaU", "gammaX", "equal")
   #reps=c(100) # number of simulations/repetitions
 )
 
@@ -136,7 +118,7 @@ readr::write_lines(args$farm_runs, path = "code/sim003_sbatch_farm.sh", append =
 ## SBATCH RUN OF ALL FILES: 
 # sbatch -t 2800 -p high ms_sim002_sbatch.sh
 
-## RUN LOCAL/SINGLE RUN (nInd, nLoci, LociLength, Coverage)
-# sh ms_simulate_haplotypes 5 100 100 10
+## RUN LOCAL/SINGLE RUN (nInd, distrib, outdir)
+# sh code/ms_simulate_haplotypes_v3.sh 5 norm sim003
 
 
