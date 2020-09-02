@@ -9,9 +9,9 @@ library(tidyverse)
 # 01: GET RAW FILES LIST ----------------------------------------------------------
 
 # get data dir
-simdir <- "sim003a"
-#distribution <- "norm"
-coverage <- 100
+simdir <- "sim005"
+distribution <- "gamma"
+#coverage <- 100
 
 # get filenames
 filenames <- list.files(path = paste0("results/",simdir), pattern = ".out",full.names = F)
@@ -36,7 +36,7 @@ files_df <- filenames %>% tibble::enframe(name = "fileno", value = "filename") %
 #View(files_df)
 
 # save this out
-save(files_df, file = glue::glue("results/{simdir}/{simdir}_files_list_{coverage}x.rda"))
+save(files_df, file = glue::glue("results/{simdir}/{simdir}_files_list_{distribution}.rda"))
 
 
 # 02: IMPORT FILES  ------------------------------------------
@@ -132,16 +132,16 @@ rep_min_df <- f_haps_df("min", rep_min_df)
 
 # COMBINE ALL BY LOCUS:
 sim_loc_df <- bind_rows(loc_mean_df, loc_max_df, loc_min_df, loc_var_df) %>% 
-  mutate("Model"=as.factor(glue::glue("{coverage}x {distrib} by Locus")))
+  mutate("Model"=as.factor(glue::glue("t{theta}_{coverage}x {distrib} by Locus")))
 
 # save out
-save(sim_loc_df, file = glue::glue("results/{simdir}/{simdir}_locus_df_{coverage}x.rda"))
+save(sim_loc_df, file = glue::glue("results/{simdir}/{simdir}_locus_df_1000reps.rda"))
 
 # COMBINE ALL BY REPS:
 sim_rep_df <- bind_rows(rep_mean_df, rep_max_df, rep_min_df, rep_var_df) %>% 
-  mutate("Model"=as.factor(glue::glue("{coverage}x {distrib} by Rep")))
+  mutate("Model"=as.factor(glue::glue("t{theta}_{coverage}x {distrib} by Rep")))
 
 # save out
-save(sim_rep_df, file = glue::glue("results/{simdir}/{simdir}_rep_df_{coverage}x.rda"))
+save(sim_rep_df, file = glue::glue("results/{simdir}/{simdir}_rep_df_1000reps.rda"))
 
 

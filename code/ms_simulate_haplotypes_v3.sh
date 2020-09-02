@@ -1,12 +1,29 @@
 #!/bin/bash -l
 
+#SBATCH --mail-user=rapeek@ucdavis.edu
+#SBATCH --mail-type=ALL
+#SBATCH -J ms_sim
+#SBATCH -e logs/ms_sim.%j.err
+#SBATCH -o slurms/ms_sim.%j.out
+#SBATCH -c 20
+#SBATCH -p high
+#SBATCH --time=5-20:00:00
+
+set -e # exits upon failing command
+set -v # verbose -- all lines
+set -x # trace of all commands after expansion before execution
+
+# run script with
+#       sbatch --mem MaxMemPerNode ms_simulate_haplotypes_v3.sh 1 2 3 4 5 6
+
+# parameters
 nInd=$1 # number of individuals in a sample
-nLoci=100 # $2 number of loci analysed
-ll=10000 # $3 # locus length
-cov=100 #$4 # mean coverage per locus analyzed (100x)
-distrib=$2 # one of "beta", "gamma", "norm", "unif", "equal", "betaU", "gammaX"
-reps=100 #number of simulations to run (had set to 1000)
-resDir=$3 # results dir to create
+nLoci=$2 # $2 number of loci analysed
+ll=$3 # $3 # locus length
+cov=$4 #$4 # mean coverage per locus analyzed (100x)
+distrib=$5 # one of "beta", "gamma", "norm", "unif", "equal", "betaU", "gammaX"
+reps=1000 #number of simulations to run (default 1000)
+resDir=$6 # results dir to create
 
 # simplified call
 # sh 5 norm sim003
@@ -54,27 +71,26 @@ echo "Looping through $reps replicates and simulating...\n"
 x=1
 while [ $x -le $reps ]	
 do
-	#printf -v repx "%03g" $x
   
   # CLUSTER: 
   # ms simulations
-  #ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms
+  ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms
 
   # generate distributions for sampling
-  #Rscript --vanilla generate_distributions.R $nInd $distrib $resDir $(printf "%03g" $x)
+  Rscript --vanilla generate_distributions.R $nInd $distrib $resDir $(printf "%03g" $x)
   
   # sample for haplotypes using distributions above
-  # perl ms_sample_v3.pl results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms $cov $error $thresh results/${resDir}/dist_${distrib}_ind${nInd}_$(printf "%03g" $x).txt > results/${resDir}/sample_${nInd}_${nLoci}_${theta}_${cov}_${error}_${thresh}_${distrib}_$(printf "%03g" $x).out
+  perl ms_sample_v3.pl results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms $cov $error $thresh results/${resDir}/dist_${distrib}_ind${nInd}_$(printf "%03g" $x).txt > results/${resDir}/sample_${nInd}_${nLoci}_${theta}_${cov}_${error}_${thresh}_${distrib}_$(printf "%03g" $x).out
   
   # LOCAL: 
   # ms simulations
-  ~/Downloads/msdir/ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms
+  #~/Downloads/msdir/ms $gc $nLoci -t $theta > results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms
 	
   # generate distributions for sampling
-  Rscript --vanilla code/generate_distributions.R $nInd $distrib $resDir $(printf "%03g" $x)
+  #Rscript --vanilla code/generate_distributions.R $nInd $distrib $resDir $(printf "%03g" $x)
   
   # sample for haplotypes using distributions above
-  perl code/ms_sample_v3.pl results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms $cov $error $thresh results/${resDir}/dist_${distrib}_ind${nInd}_$(printf "%03g" $x).txt > results/${resDir}/sample_${nInd}_${nLoci}_${theta}_${cov}_${error}_${thresh}_${distrib}_$(printf "%03g" $x).out
+  #perl code/ms_sample_v3.pl results/ms_${nInd}_${nLoci}_${theta}_${cov}_$(printf "%03g" $x).ms $cov $error $thresh results/${resDir}/dist_${distrib}_ind${nInd}_$(printf "%03g" $x).txt > results/${resDir}/sample_${nInd}_${nLoci}_${theta}_${cov}_${error}_${thresh}_${distrib}_$(printf "%03g" $x).out
 	
 	x=$(( $x + 1 ))
 
