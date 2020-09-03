@@ -6,6 +6,12 @@ library(tidyverse)
 #library(tidylog)
 #library(here)
 
+
+# Get Data ----------------------------------------------------------------
+
+# pull all recent runs from the server (do once)
+#system("sh code/02_get_runs_from_farmer.sh")
+
 # 01: GET RAW FILES LIST ----------------------------------------------------------
 
 # get data dir
@@ -95,50 +101,52 @@ rep_mean_df <- f_haps_df("mean", rep_mean_df)
 
 # ** Calculate Var -------------------------------------------
 
-# BY LOCI: calculate haplos per loci (over all replicates)
-loc_var_df <- map(dataAll$dat, ~f_agg_haps_by_locus(.x, "var")) %>% 
-  map2_df(., files_df$sampleID, ~mutate(.x, sampleID=.y))
-loc_var_df <- f_haps_df("var", loc_var_df)
-
-# BY REPLICATE: calculate haplos per replicate (over all X loci)
-rep_var_df <- f_agg_haps_by_rep(dataAll, "var")
-rep_var_df <- f_haps_df("var", rep_var_df)
-
-
-# ** Calculate Max -------------------------------------------
-
-# BY LOCI: calculate haplos per loci (over all replicates)
-loc_max_df <- map(dataAll$dat, ~f_agg_haps_by_locus(.x, "max")) %>% 
-  map2_df(., files_df$sampleID, ~mutate(.x, sampleID=.y))
-loc_max_df <- f_haps_df("max", loc_max_df)
-
-# BY REPLICATE: calculate haplos per replicate (over all X loci)
-rep_max_df <- f_agg_haps_by_rep(dataAll, "max")
-rep_max_df <- f_haps_df("max", rep_max_df)
-
-# ** Calculate Min -------------------------------------------
-
-# BY LOCI: calculate haplos per loci (over all replicates)
-loc_min_df <- map(dataAll$dat, ~f_agg_haps_by_locus(.x, "min")) %>% 
-  map2_df(., files_df$sampleID, ~mutate(.x, sampleID=.y))
-loc_min_df <- f_haps_df("min", loc_min_df)
-
-# BY REPLICATE: calculate haplos per replicate (over all X loci)
-rep_min_df <- f_agg_haps_by_rep(dataAll, "min")
-rep_min_df <- f_haps_df("min", rep_min_df)
+# # BY LOCI: calculate haplos per loci (over all replicates)
+# loc_var_df <- map(dataAll$dat, ~f_agg_haps_by_locus(.x, "var")) %>% 
+#   map2_df(., files_df$sampleID, ~mutate(.x, sampleID=.y))
+# loc_var_df <- f_haps_df("var", loc_var_df)
+# 
+# # BY REPLICATE: calculate haplos per replicate (over all X loci)
+# rep_var_df <- f_agg_haps_by_rep(dataAll, "var")
+# rep_var_df <- f_haps_df("var", rep_var_df)
+# 
+# 
+# # ** Calculate Max -------------------------------------------
+# 
+# # BY LOCI: calculate haplos per loci (over all replicates)
+# loc_max_df <- map(dataAll$dat, ~f_agg_haps_by_locus(.x, "max")) %>% 
+#   map2_df(., files_df$sampleID, ~mutate(.x, sampleID=.y))
+# loc_max_df <- f_haps_df("max", loc_max_df)
+# 
+# # BY REPLICATE: calculate haplos per replicate (over all X loci)
+# rep_max_df <- f_agg_haps_by_rep(dataAll, "max")
+# rep_max_df <- f_haps_df("max", rep_max_df)
+# 
+# # ** Calculate Min -------------------------------------------
+# 
+# # BY LOCI: calculate haplos per loci (over all replicates)
+# loc_min_df <- map(dataAll$dat, ~f_agg_haps_by_locus(.x, "min")) %>% 
+#   map2_df(., files_df$sampleID, ~mutate(.x, sampleID=.y))
+# loc_min_df <- f_haps_df("min", loc_min_df)
+# 
+# # BY REPLICATE: calculate haplos per replicate (over all X loci)
+# rep_min_df <- f_agg_haps_by_rep(dataAll, "min")
+# rep_min_df <- f_haps_df("min", rep_min_df)
 
 
 # 04: COMBINE INTO SINGLE DATASET ------------------------------
 
 # COMBINE ALL BY LOCUS:
-sim_loc_df <- bind_rows(loc_mean_df, loc_max_df, loc_min_df, loc_var_df) %>% 
+sim_loc_df <- bind_rows(loc_mean_df) %>% 
+                        #loc_max_df, loc_min_df, loc_var_df) %>% 
   mutate("Model"=as.factor(glue::glue("t{theta}_{coverage}x {distrib} by Locus")))
 
 # save out
 save(sim_loc_df, file = glue::glue("results/{simdir}/{simdir}_locus_df_1000reps.rda"))
 
 # COMBINE ALL BY REPS:
-sim_rep_df <- bind_rows(rep_mean_df, rep_max_df, rep_min_df, rep_var_df) %>% 
+sim_rep_df <- bind_rows(rep_mean_df) %>% 
+                        #rep_max_df, rep_min_df, rep_var_df) %>% 
   mutate("Model"=as.factor(glue::glue("t{theta}_{coverage}x {distrib} by Rep")))
 
 # save out

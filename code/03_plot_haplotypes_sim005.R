@@ -46,27 +46,28 @@ load(glue::glue("results/{simdir}/{simdir}_locus_df_{reps}reps.rda"))
 
 #notched box plot, the notches extend 1.58 * IQR / sqrt(n). This gives a roughly 95% confidence interval for comparing medians. See McGill et al. (1978) 
 
+# make nice label names:
+lociNames <- c(`100`="No. Loci = 100",
+               `250`="No. Loci = 250",
+               `500`="No. Loci = 500",
+               `1000`="No. Loci = 1,000")
+thetaNames <- c(`1`="theta=1 (1000)",`2.5`="theta=2.5",
+                `5`="theta=5", `10`="theta=10  (10000)")
+
+
+
 ggplot() + 
-  #geom_jitter(data=sim_loc_df %>% filter(stat=="max"), 
-  #             aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
-  # geom_boxplot(data=sim_loc_df %>% filter(stat=="max"), #width=1.5,
-  #              aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
-  #              outlier.size = 0.5, outlier.alpha = 0.2) +
   #geom_jitter(data=sim_loc_df %>% filter(stat=="mean"), 
   #            aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
-  geom_boxplot(data=sim_loc_df %>% filter(stat=="mean", distrib %in% c("gamma")), #width=1.5,
-               aes(x=nInd, y=haplos, group=nInd, fill=coverage), notch=TRUE, 
-               outlier.size = 0.5, outlier.alpha = 0.2) +
-  #geom_jitter(data=sim_loc_df %>% filter(stat=="min"), 
-  #            aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
-  # geom_boxplot(data=sim_loc_df %>% filter(stat=="min"), #width=1.5,
-  #              aes(x=nInd, y=haplos, group=nInd, fill=stat), notch = TRUE,
-  #              outlier.size = 0.5, outlier.alpha = 0.2) +
-  facet_grid(theta~nLoci) +
-  #             labeller= labeller(nLoci = as_labeller(lociNames), 
-  #                                theta = as_labeller(thetaNames, label_parsed))) +
+  geom_boxplot(data=sim_loc_df,
+               aes(x=nInd, y=haplos, group=nInd, color=as.factor(coverage)), 
+               notch=TRUE, outlier.size = 0.5, outlier.alpha = 0.2) +
+  
+  facet_grid(theta~nLoci+coverage) +
+  
+              labeller= labeller(nLoci = as_labeller(lociNames),
+                                 theta = as_labeller(thetaNames, label_parsed)) +
   theme_bw(base_family = "Roboto") +
-  ggthemes::scale_color_colorblind("Coverage") +
   ggthemes::scale_fill_colorblind("Coverage") +
   theme(
     plot.caption = ggtext::element_markdown()) +
