@@ -10,7 +10,7 @@ library(tidyverse)
 # Get Data ----------------------------------------------------------------
 
 # pull all recent runs from the server (do once)
-#system("sh code/02_get_runs_from_farmer.sh")
+system("sh code/02_get_runs_from_farmer.sh")
 
 # 01: GET RAW FILES LIST ----------------------------------------------------------
 

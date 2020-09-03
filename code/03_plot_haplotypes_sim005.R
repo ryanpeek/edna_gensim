@@ -51,32 +51,38 @@ lociNames <- c(`100`="No. Loci = 100",
                `250`="No. Loci = 250",
                `500`="No. Loci = 500",
                `1000`="No. Loci = 1,000")
-thetaNames <- c(`1`="theta=1 (1000)",`2.5`="theta=2.5",
-                `5`="theta=5", `10`="theta=10  (10000)")
+thetaNames <- c(`1`="theta==1 (1000)",`2.5`="theta==2.5",
+                `5`="theta==5", `10`="theta==10  (10000)")
 
 
 
 ggplot() + 
-  #geom_jitter(data=sim_loc_df %>% filter(stat=="mean"), 
-  #            aes(x=nInd, y=haplos, group=nInd, fill=stat), size=0.2, alpha = 0.2) +
-  geom_boxplot(data=sim_loc_df,
-               aes(x=nInd, y=haplos, group=nInd, color=as.factor(coverage)), 
+  geom_boxplot(data=sim_loc_df %>% filter(coverage==10),
+               aes(x=nInd, y=haplos, group=nInd, fill=coverage), 
                notch=TRUE, outlier.size = 0.5, outlier.alpha = 0.2) +
-  
-  facet_grid(theta~nLoci+coverage) +
-  
-              labeller= labeller(nLoci = as_labeller(lociNames),
-                                 theta = as_labeller(thetaNames, label_parsed)) +
+  geom_boxplot(data=sim_loc_df %>% filter(coverage==25),
+               aes(x=nInd, y=haplos, group=nInd, fill=coverage), 
+               notch=TRUE, outlier.size = 0.5, outlier.alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(coverage==50),
+               aes(x=nInd, y=haplos, group=nInd, fill=coverage), 
+               notch=TRUE, outlier.size = 0.5, outlier.alpha = 0.2) +
+  geom_boxplot(data=sim_loc_df %>% filter(coverage==100),
+               aes(x=nInd, y=haplos, group=nInd, fill=coverage), 
+               notch=TRUE, outlier.size = 0.5, outlier.alpha = 0.2) +
+  facet_grid(theta~nLoci, 
+             labeller= labeller(nLoci = as_labeller(lociNames),
+                                theta = as_labeller(thetaNames, label_parsed))) +
   theme_bw(base_family = "Roboto") +
   ggthemes::scale_fill_colorblind("Coverage") +
   theme(
     plot.caption = ggtext::element_markdown()) +
   #scale_x_continuous(minor_breaks = seq(0,50,2)) +
   #scale_y_continuous(breaks=seq(0,18,2)) +
-  guides(color=FALSE)+
+  #guides(color=FALSE)+
   labs(y="Number of Haplotypes", x="Number of Individuals",
-       title="By Loci: Simulations of Haplotypes",
-       caption="Based on 1000 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i>")
+       title="eDNA Simulations: Haplotype detection across sequencing parameters",
+       subtitle="Using a gamma distribution for individual shedding probabilities",
+       caption="Based on 1000 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i> with an error rate of 0.1 and minimum haplotype detected=2")
 
 # save
 ggsave(glue::glue("figs/{simdir}_haplos_{coverage}x_100loci_boxplot_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
