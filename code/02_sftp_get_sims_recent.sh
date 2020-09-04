@@ -20,7 +20,6 @@ find run_* -type f -newermt "$lasttime" > newest
 exit
 EOF
 
-
 # 03. GET THE NEWEST LIST locally
 sftp -P 2022 rapeek@farm.cse.ucdavis.edu <<EOF
 cd projects/edna_pop/results/sim005
@@ -32,6 +31,7 @@ EOF
 file='newest'
 totnum=$(wc -l newest)
 echo $totnum
+#totnum=20
 fileNames=$(echo "ls -1rt run*" | sftp -P 2022 rapeek@farm.cse.ucdavis.edu:/home/rapeek/projects/edna_pop/results/sim005 | tail -n $totnum) 
 
 for f in $fileNames
