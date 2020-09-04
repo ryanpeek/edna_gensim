@@ -4,14 +4,12 @@
 
 library(tidyverse)
 library(glue)
-#library(tidylog)
-#library(here)
-
+library(tidylog)
 
 # Get Data ----------------------------------------------------------------
 
 # pull all recent runs from the server (do once)
-system("sh code/02_rclone_get_sims.sh")
+# system("sh code/f_rclone_get_sims.sh")
 
 # 01: GET RAW FILES LIST ----------------------------------------------------------
 
@@ -42,7 +40,8 @@ files_df <- filepaths %>% tibble::enframe(name = "fileno", value = "filename") %
   arrange(nLoci, theta, coverage, nInd, distrib) %>% 
   mutate(files = basename(filename))
 
-View(files_df)
+#View(files_df)
+nrow(files_df) # number of files
 
 # save this out
 save(files_df, file = glue::glue("results/{simdir}/{simdir}_files_list_{distribution}.rda"))

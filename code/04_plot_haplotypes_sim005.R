@@ -75,10 +75,12 @@ ggplot() +
   theme(
     plot.caption = ggtext::element_markdown()) +
   #guides(color=FALSE)+
-  labs(y="Number of Haplotypes", x="Number of Individuals",
+  labs(y="Mean No. Haplotypes", x="Number of Individuals",
        title="eDNA Simulations: Haplotype detection across sequencing parameters",
        subtitle="Using a gamma distribution for individual shedding probabilities",
        caption="Based on 1000 replicate simulations for each parameter combination,<br>performed in the program <i>ms</i> with an error rate of 0.1 and minimum haplotype detected=2")
+
+
 
 # save
 ggsave(glue::glue("figs/{simdir}_haplos_boxplot_faceted.png"), width = 11, height = 8.5, units = "in", dpi=300)
@@ -99,9 +101,9 @@ thetaNames <- c(`1`="theta==1 (1000)",`2.5`="theta==2.5",
 ggplot() + 
 
   # MEAN
-  geom_ribbon(data=sim_loc_ci, aes(x=nInd, ymin=ci_lo, ymax=ci_up, fill=coverage), alpha = 0.5) +
-  geom_line(data=sim_loc_ci, aes(x=nInd, y=ci_mean, color=coverage), alpha = 0.9, lwd=0.5) +
-  geom_point(data=sim_loc_ci, aes(x=nInd, y=ci_mean, group=nInd, fill=coverage),
+  geom_ribbon(data=sim_loc_ci, aes(x=nInd, ymin=ci_mlo, ymax=ci_mup, fill=coverage), alpha = 0.5) +
+  geom_line(data=sim_loc_ci, aes(x=nInd, y=ci_med, color=coverage), alpha = 0.9, lwd=0.5) +
+  geom_point(data=sim_loc_ci, aes(x=nInd, y=ci_med, group=nInd, fill=coverage),
              pch=21, alpha = 0.7) +
 
   # formatting
