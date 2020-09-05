@@ -9,7 +9,13 @@ library(tidylog)
 # Get Data ----------------------------------------------------------------
 
 # pull all recent runs from the server (do once)
-# system("sh code/f_rclone_get_sims.sh")
+#system("sh code/f_rclone_get_sims.sh")
+
+# get data dir
+simdir <- "sim005"
+
+# get a count of total files
+length(fs::dir_ls(path=glue::glue("~/Box Sync/PROJECTS/SERDP/{simdir}/")))
 
 # 01: GET RAW FILES LIST ----------------------------------------------------------
 
@@ -172,6 +178,8 @@ object_size(sim_loc_df)
 save(sim_loc_df, file = glue::glue("results/{simdir}/{simdir}_locus_df_1000reps.rda"))
 
 
+# beep as done!
+beepr::beep(sound = 1)
 
 # COMBINE ALL BY REPS:
 # sim_rep_df <- bind_rows(rep_mean_df) %>% 
