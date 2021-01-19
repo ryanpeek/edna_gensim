@@ -1,0 +1,122 @@
+---
+title: "Leveraging multi-locus genomics to estimate population demographics from eDNA water samples"
+subtitle: ""
+author: "Ryan Peek, Michael Miller, Caren Goldberg"
+date: "Updated: `r format(Sys.Date())`"
+output:
+  pagedreport::paged_hazelnuts:
+    front_img: "https://ryanpeek.org/img/snorkel-missouricnyn.jpg"
+    back_img: "https://ryanpeek.org/img/P1070160.jpg"
+    img_to_dark: TRUE
+    logo_to_white: FALSE
+main-color: "#022851"
+google-font: TRUE
+main-font: "Roboto"
+header-font: "Lato"
+knit: pagedown::chrome_print
+toc-title: "Table of Contents"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(knitr)
+library(glue)
+library(here)
+```
+
+# INTRODUCTION {-}
+
+The use of environmental DNA (eDNA) has increasing become a popular and useful approach for detection of species in conservation and management projects.
+
+ - List many uses and applications, current status of eDNA.
+ 
+However, limitations remain..
+
+ - Detections (false and positive)
+ - Facilities required (clean lab, etc)
+
+There is the potential to advance the use of eDNA in conservation beyond detecting the presence of individuals through leveraging the power of multi-locus sequencing to estimate the number of individuals in a sample. Ultimately, this is possible because the more individuals exist in a sample, the more genetic diversity will be present in that sample.
+
+```{r dna2pop, echo=FALSE, out.width='100%', fig.cap="From eDNA to Populations."}
+
+knitr::include_graphics(glue("{here()}/figs/dna_to_pop_fig.png"))
+
+```
+
+## Environmental processes that affect detection of eDNA {-}
+
+Several biological and environmental processes affect detection of eDNA. These include production (individual shedding rates), transport, and degradation. 
+
+**Production** can differ by individual…
+
+```{r production, echo=FALSE, out.width='100%', fig.cap="Production of DNA may differ by individual."}
+
+knitr::include_graphics(glue("{here()}/figs/production_by_individual.png"))
+
+```
+
+**Transport**…depends on the environment, relates to degradation and production. 
+
+**Degradation** depends on the environment.
+
+All three of these can be strongly influenced by the sampling methodology.
+
+## Technical processes that affect detection of diversity in eDNA {-}
+
+ - Sequencing error
+ - Coverage
+ - Diversity (relates to $\pi$ and read length, e.g., $\theta$ = 4 * $N_e$ * $\mu$ * $llength$)
+ - Number of loci analyzed
+
+## Objectives {-}
+
+The overarching goal of this research is to further develop and expand the boundaries of population-level inference from aquatic samples. 
+pecifically, there were two objectives that this research focuses on:
+
+ - Identifying sequencing parameters that are most important to maximize the probability of population demography estimates
+ - Test whether it is possible to determine how many individuals exist in a water sample using multi-locus sequencing approaches in comparison to simulated estimates
+
+# METHODS {-}
+
+To answer these questions, we used simulations to better understand the technical aspects of sequencing that play an important role in the ability to describe variation in a sample. 
+These simulations provided a model of what parameters influenced: 
+
+ - How many unique haplotypes that can be observed (a way to quantify diversity) at a particular loci?
+ - The mean number of haplotypes observed across loci (haplotype variation)?
+
+Under an ideal model, it would be possible to retrieve equal amounts of DNA from every sample or individual. 
+However, in reality, there is some distribution of variation in DNA in a given sample, which is influenced by the rates of production and shedding of individuals in a sample.
+
+We know there is a relationship between the number of individuals in a sample and the haplotype diversity, that is, with more individuals, we expect more haplotype diversity.
+However, there are technical issues in observing that diversity in a water sample when using eDNA approaches. 
+In addition to the number individuals, many technical issues affect how many haplotypes you can observe.
+
+Some individuals may have more DNA in sample, and typically this information is unavailable for field samples. 
+Similarly, there may be many haplotypes at a given locus, but with low sequencing, these haplotypes may go undetected.
+Furthermore, if variation at a locus or within a species is extremely low, it may not be possible to detect many differences.
+
+These factors are also impacted by the number of gene copies (copy of a particular gene from one individual) that are sequenced.
+Many haplotypes may not differ from each other over 100 bp, but with 1000 or 10,000 bp (more gene copies) there is a better chance of detecting haplotypes. 
+
+
+
+
+# RESULTS {-}
+
+We developed a conceptual model to use in designing simulations to test our objectives.
+From this model, it is possible to identify to explore what sequencing parameters are most important to maximize the probability of population demography estimates, which can be then used to estimate how many individuals exist in a water sample using multi-locus sequencing approaches.
+
+## Conceptual Model {-}
+
+```{r conceptmodel, echo=FALSE, out.width='100%', fig.cap="Conceptual model of processes that affect detection of haplotypes in eDNA."}
+
+knitr::include_graphics(glue("{here()}/figs/concept_model_edna_processes.png"))
+
+```
+
+## Key Parameters {-}
+
+We identified the key parameters that give the best probability of detecting a known number of individuals in a sample using simulations of various sequencing/genetic parameter combinations.
+The parameter that had the greatest influence on the ability to detect haplotypes (from individuals or populations) in an eDNA sample was $\theta$. $\Theta$ relates to loci length, mutation rate, and effective population size $N_e$.
+High coverage also appeared to substantially increase the chance of detecting more haplotypes in a sample. 
+Interestingly, the number of loci sequenced and the error rate (using 0 error, or 10% random sequencing error) appeared to have very little impact on the ability to detect haplotypes in a sample.
