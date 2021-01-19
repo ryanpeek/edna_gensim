@@ -38,3 +38,6 @@ seedms
 # file
 .DS_Store
 ~/.boxr-oauth
+
+# add alias
+*alias
