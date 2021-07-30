@@ -84,3 +84,37 @@ lines(y, dnorm(y, mean=50, sd = 4), col="gray", lwd=2)
  - N~e~ = Coalescent effective size, using conservative est. of 25,000
  - conclusion 3: I think our upward loci length of 10,000 was more of a "future" estimate. We are close with single read options but we prob aren't there yet. 
  - thinking about $\theta$ = 4N$\mu$ can be misleading because N~e~ is coalescent effective population size which is usually orders of magnitude bigger than local census size. For many species our highest theta (10) would be more like a 2 kb DNA fragment. Mean read lengths of 5+ kb are available now with PacBio, but the output needs to increase to make it less cost prohibitive. The limitation will become DNA fragment length in eDNA samples at some point, if not already, even as sequencing tech improves. 
+ 
+ 
+ # Meeting 2021-07-30
+ 
+  - use Tiger Salamanders (see annotated Axolotl genome)
+
+Additional thoughts:
+
+ - using empirical diversity from sequenced individuals in sample population, can get haplotype diversity from that distribution
+ - sequence individuals, get pooled haplotype diversity and assess distribution that way, vs. coalescent
+ - Ultimately its based on allele freq **distribution** in population sample, which relates to evolutionary scale and is a function of coalescent effective size. Most allele freq distributions will usually have neutral distributions, even if small/divergent populations/isolated. (Mike knows citations to support this)
+ - Compare both simulated coalescent with empirical, may be a 10% bias? Don't know.
+ - In paper, discuss the potential to use empirical data to inform when possible?
+
+
+## Experiments
+
+### Sequencing: 
+
+ 1. Need to identify target bait/loci in salamander. Based on Melsted/Shaffer paper, only 300-400 loci was enough to estimate k=15 groups with fairly low error rate.
+    - Identify sfb1-RAD sites in genome (better for this because they align at same location (no offsets) and they thus have a better pileup and better depth).
+    - Search genome for sbf1 sites, pull 10k from either side, then feed that information into REPEATMASKER
+    - Reduce masked alignment and align back to genome, make sure only 1x alignments (no dups) and then randomly select 500-1000 loci to use as baits.
+    - Use this in low-input prep and then sequence (use MiSeq 600-1000bp reads?)
+    
+### Lab/Bucket Experiment
+
+ - Depends on what Megan has available, but ideally have something like: 1, 2, 5, 10, 20, sequence 20 individuals (from the 10 bucket, but both replicates).
+ - Fine if we take one eDNA filter from each bucket replicate as long as we mix the water prior to filtering. So only "biological" replicates in this case:
+ 
+  - 2 buckets w 1 indiv
+  - 2 buckets w 2 indiv
+  - 2 buckets w 5 indiv...
+  
