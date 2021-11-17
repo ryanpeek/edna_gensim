@@ -49,6 +49,8 @@ files_df <- filepaths %>% tibble::enframe(name = "fileno", value = "filename") %
 #View(files_df)
 nrow(files_df) # number of files
 
+fs::dir_create(glue("results/{simdir}"))
+
 # save this out
 save(files_df, file = glue::glue("results/{simdir}/{simdir}_files_list_{distribution}.rda"))
 
@@ -68,10 +70,10 @@ dataAll <- files_df %>%
                                   .progress = TRUE))
 toc()
 
-#save(dataAll, file = glue("results/{simdir}/{simdir}_dataAll.rda"))
+save(dataAll, file = glue("results/{simdir}/{simdir}_dataAll.rda"))
 # this is big = 114 MB
 library(pryr)
-object_size(dataAll)
+object_size(dataAll) # 2022 MB ()
 mem_used()
 
 # 03: CALCULATE HAPLOTYPES  -------------------------------------
