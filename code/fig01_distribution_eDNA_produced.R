@@ -25,14 +25,15 @@ df <- tibble(norm = nnorm, unif = nunif, gamma=ngam)
 # geom histogram 
 ggplot() + 
   geom_histogram(data=df, aes(gamma), bins = 100) +
-  geom_histogram(data=df, aes(unif), fill=colblind_pal[2], bins=100, alpha=0.8) +
+  #geom_histogram(data=df, aes(unif), fill=colblind_pal[2], bins=100, alpha=0.8) +
   geom_histogram(data=df, aes(norm), fill=colblind_pal[3], bins=100, alpha=0.8) +
   xlim(c(0,10)) +
   scale_y_continuous(labels = percent_format(scale =1e-3)) +
   theme_cowplot() +
+  theme(plot.background = element_rect(fill="white")) +
   labs(
        y="Proportion of Individuals in Population",
-       x="Amount of eDNA in sample over time")
+       x="Amount of total eDNA in sample")
 
 ggsave(filename = "figs/edna_distributions_in_sample_histogram.png", 
        width = 10, height = 8, dpi=300)
