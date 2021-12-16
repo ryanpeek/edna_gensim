@@ -5,6 +5,7 @@ library(ggfortify)
 library(ggthemes)
 library(cowplot)
 library(scales)
+library(glue)
 # get colorblind palette
 # scales::show_col(ggthemes::colorblind_pal()(8))
 colblind_pal <- ggthemes::colorblind_pal()(4)
@@ -29,6 +30,8 @@ ggplot() +
   geom_histogram(data=df, aes(norm), fill=colblind_pal[3], bins=100, alpha=0.8) +
   xlim(c(0,10)) +
   scale_y_continuous(labels = percent_format(scale =1e-3)) +
+  scale_x_continuous(labels=glue("{c(seq(0,100, 25))}%"), breaks = c(seq(0,10,2.5)),
+                     limits = c(0,10)) +
   theme_cowplot() +
   theme(plot.background = element_rect(fill="white")) +
   labs(
