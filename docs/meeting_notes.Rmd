@@ -6,6 +6,7 @@ output:
     highlight: pygments
     theme: yeti
     toc: yes
+    toc_depth: 2
     toc_float: yes
     code_folding: hide
 editor_options: 
@@ -24,9 +25,41 @@ suppressPackageStartupMessages({
 
 ```
 
-# Meeting 2020-04-14 w Mike
+# Meeting 2020-03-12
 
-## To Do: 
+## Bucket Experiments
+
+If we are going to run these, supplies we need:
+
+ - no glass (DNA sticks)
+ - clean space
+ - time to degradation/equilibrium? 
+ - Caren recommended 3-4 hours
+ - 5 L (treated and ready for fish)
+ - most fish DNA 1 - 10 microns
+ - filters 0.45 microns (can clog) this would match the underlying distributions of bullfrog experiments
+ - Steriltec
+ - Start with high density tank first and do 250 mL amounts
+ - fold up and stick in a 2ml tube with ethanol
+ - or fold in half inward and put in separate coin envelopes with ziploc w/ silica
+ - Ship samples to WSU for extraction, WSU sends half of samples.
+
+### Materials
+
+ - https://www.sterlitech.com/autofil-250-ml-0-45-um-funnel-only.html
+ - PERMITS: if an amendment, need to run by DOD IACUC, IF NOT, we can use indirect IACUC/permitting
+ - SHIPPING samples to WSU
+ - **Make sure we are monthly billing (Debbie)**
+ 
+### Replicates
+
+ - 2-3 replicates?
+ - 1, 2, 5, 10 (replicated x2),
+ - try 40 once and if enough 2x
+
+# Meeting 2020-04-14
+
+### To Do: 
 
  - discuss updating the sims with diff distributions
     - focus on Poisson, Gaussian, and uniform
@@ -34,7 +67,7 @@ suppressPackageStartupMessages({
  - write up manuscript without field experiments for now? 
  - update and submit the regulation paper
 
-## eDNA manuscript
+### eDNA manuscript
 
 **make a conceptual model:** and use to set up intro and paper. Check Bioscience paper that Sarah wrote for guidance.
 
@@ -78,7 +111,7 @@ lines(y, dnorm(y, mean=50, sd = 4), col="gray", lwd=2)
  - that distrigution is effected by technological and biological
  - variation in number of haplos in a sample is biological
 
-## Review: 
+### Review
 
  - $\mu$ = mutation rate, we assumed general mutation rate of 1e^-8^
  - N~e~ = Coalescent effective size, using conservative est. of 25,000
@@ -86,20 +119,14 @@ lines(y, dnorm(y, mean=50, sd = 4), col="gray", lwd=2)
  - thinking about $\theta$ = 4N$\mu$ can be misleading because N~e~ is coalescent effective population size which is usually orders of magnitude bigger than local census size. For many species our highest theta (10) would be more like a 2 kb DNA fragment. Mean read lengths of 5+ kb are available now with PacBio, but the output needs to increase to make it less cost prohibitive. The limitation will become DNA fragment length in eDNA samples at some point, if not already, even as sequencing tech improves. 
  
  
- # Meeting 2021-07-30
+# Meeting 2021-07-30
  
-  - use Tiger Salamanders (see annotated Axolotl genome)
-
-Additional thoughts:
-
+ - use Tiger Salamanders (see annotated Axolotl genome)
  - using empirical diversity from sequenced individuals in sample population, can get haplotype diversity from that distribution
  - sequence individuals, get pooled haplotype diversity and assess distribution that way, vs. coalescent
  - Ultimately its based on allele freq **distribution** in population sample, which relates to evolutionary scale and is a function of coalescent effective size. Most allele freq distributions will usually have neutral distributions, even if small/divergent populations/isolated. (Mike knows citations to support this)
  - Compare both simulated coalescent with empirical, may be a 10% bias? Don't know.
  - In paper, discuss the potential to use empirical data to inform when possible?
-
-
-## Experiments
 
 ### Sequencing: 
 
@@ -118,3 +145,36 @@ Additional thoughts:
   - 2 buckets w 2 indiv
   - 2 buckets w 5 indiv...
   
+
+# Meeting 2022-03-09
+
+Shifting gears to see if we can use eDNA for assessing the number of individuals. Important to do experiments to see what buffers/temperatures/blockers may help optimize eDNA samples for sequencing and capture. 
+
+Really do need a capture step as this was key piece of what we promised, particularly given eDNA sample is <1% of actual target species DNA, and unclear fragmented to what degree.
+
+## Experiment Gear Needed
+
+Assume 3-4 levels depending on fish sampled:
+
+ - **1, 2, 5, 10+**
+ - 2 replicates minimum
+
+Gear we'd need to do experiment with stickleback:
+
+ - glass stir rods
+ - clean buckets (6 minimum)
+ - 5 liters of water
+ - clean bubblers, tubing, etc
+ - Filters (0.45 micron?)
+ - pump and tubing
+ - aquarium nets (1 per treatment)
+ - water (probably 1 gallon per bucket)?
+ - Filter 250ml to 1 L of water per filter (depends on muck)
+
+## Questions? 
+
+ - Wait 2-3 hours per replicate, start with all the fish first then move to the smaller increments?
+ - use same fish from large treatment in small treatment? Any issues with this? 
+ 
+
+Any
